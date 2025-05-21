@@ -1,5 +1,5 @@
-#ifndef DSLIB_LIST_H
-#define DSLIB_LIST_H
+#ifndef DS_LIST_H
+#define DS_LIST_H
 
 #include "ds_util.h"
 
@@ -138,4 +138,4 @@ private:
   }
 };
 
-#endif // DSLIB_LIST_H
+#endif // DS_LIST_H

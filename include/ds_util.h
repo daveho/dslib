@@ -1,5 +1,5 @@
-#ifndef DSLIB_UTIL_H
-#define DSLIB_UTIL_H
+#ifndef DS_UTIL_H
+#define DS_UTIL_H
 
 // Convenience for declaring copy ctor and assignment
 // operator as nonexistent
@@ -18,4 +18,4 @@ if ( !(expr) ) \
 #define DSASSERT( expr )
 #endif
 
-#endif // DSLIB_UTIL_H
+#endif // DS_UTIL_H
