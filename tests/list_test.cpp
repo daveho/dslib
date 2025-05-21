@@ -86,6 +86,7 @@ void test_append( TestObjs *objs );
 void test_prepend( TestObjs *objs );
 void test_insert_before( TestObjs *objs );
 void test_insert_after( TestObjs *objs );
+void test_remove( TestObjs *objs );
 
 ////////////////////////////////////////////////////////////////////////
 // Test program
@@ -102,6 +103,7 @@ int main( int argc, char **argv ) {
   TEST( test_prepend );
   TEST( test_insert_before );
   TEST( test_insert_after );
+  TEST( test_remove );
 
   TEST_FINI();
 }
@@ -200,4 +202,29 @@ void test_insert_after( TestObjs *objs ) {
   ilist.insert_after( new IntListNode( 5 ), p2 );
   ASSERT( ilist.get_size() == 5 );
   check_list_contents( { 9, 0, 1, 2, 5 }, ilist );
+}
+
+void test_remove( TestObjs *objs ) {
+  auto &ilist = objs->ilist;
+
+  auto first = new IntListNode( 9 );
+  ilist.append( first );
+  ilist.append( new IntListNode( 0 ) );
+  auto middle = new IntListNode( 1 );
+  ilist.append( middle );
+  ilist.append( new IntListNode( 2 ) );
+  auto last = new IntListNode( 5 );
+  ilist.append( last );
+
+  ilist.remove( first );
+  ASSERT( ilist.get_size() == 4 );
+  check_list_contents( { 0, 1, 2, 5 }, ilist );
+
+  ilist.remove( last );
+  ASSERT( ilist.get_size() == 3 );
+  check_list_contents( { 0, 1, 2 }, ilist );
+
+  ilist.remove( middle );
+  ASSERT( ilist.get_size() == 2 );
+  check_list_contents( { 0, 2 }, ilist );
 }

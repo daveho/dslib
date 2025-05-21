@@ -154,6 +154,41 @@ public:
     }
   }
 
+  //! Remove a list node.
+  //! The List gives up ownership of the removed node,
+  //! so it's the caller's responsibility to free it.
+  //! @param existing an existing list node
+  void remove( ActualNodeType *node_to_remove ) {
+    if ( node_to_remove == m_head ) {
+      DS_ASSERT( node_to_remove->get_prev() == nullptr );
+      m_head = m_head->get_next();
+      if ( m_head == nullptr )
+        m_tail = nullptr; // list becaome empty
+      else
+        m_head->set_prev( nullptr ); // new list head has no predecessor now
+    } else if ( node_to_remove == m_tail ) {
+      DS_ASSERT( node_to_remove->get_next() == nullptr );
+      m_tail = m_tail->get_prev();
+      if ( m_tail == nullptr )
+        m_head = nullptr; // list became empty
+      else
+        m_tail->set_next( nullptr ); // new list tail has no successor now
+    } else {
+      // General case: node being removed has both a predecessor
+      // and a successor
+      ActualNodeType *prev = node_to_remove->get_prev();
+      ActualNodeType *next = node_to_remove->get_next();
+
+      // splice removed node out of the list
+      prev->set_next( next );
+      next->set_prev( prev );
+    }
+
+    // For robustness, clear removed node's next and prev fields
+    node_to_remove->set_prev( nullptr );
+    node_to_remove->set_next( nullptr );
+  }
+
   //! @return the number of nodes in the list (note that this involves
   //           an O(N) traversal of the list nodes)
   unsigned get_size() const {
