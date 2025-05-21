@@ -35,6 +35,10 @@ public:
   //! compares as less than right node
   typedef bool LessThanFn( ActualNodeType *left, ActualNodeType *right );
 
+  // TODO: we'll likely need a NodeSwapContentsFn function type,
+  // because for deletion we'll need to move the contents of a leaf
+  // to the position of the node whose contents are being deleted
+
   //! Node free function type
   typedef void FreeNodeFn( ActualNodeType *node );
 
