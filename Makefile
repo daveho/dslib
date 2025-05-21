@@ -1,6 +1,8 @@
 CXX = g++
 CXXFLAGS = -g -Wall -Iinclude
 
+TEST_SRCS = tctest.cpp list_test.cpp
+
 TEST_EXES = build/list_test
 
 build/%.o : src/%.cpp
@@ -14,3 +16,13 @@ build/list_test : build/list_test.o build/tctest.o
 
 clean :
 	rm -f build/*.o $(TEST_EXES)
+
+depend :
+	$(CXX) $(CXXFLAGS) -M $(TEST_SRCS:%=tests/%) \
+		| ./scripts/fixdeps.rb \
+		> depend.mak
+
+depend.mak :
+	touch $@
+
+include depend.mak
