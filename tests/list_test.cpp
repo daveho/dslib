@@ -54,7 +54,7 @@ void check_list_contents( const std::vector<int> &expected, const List< IntListN
 // Turn dslib assertions into tctest test failures
 ////////////////////////////////////////////////////////////////////////
 
-void dslib_assert_fail( const char *msg, const char *filename, int line ) {
+void ds_assert_fail( const char *msg, const char *filename, int line ) {
   std::stringstream ss;
   ss << filename << ":" << line << ": " << msg;
   FAIL( ss.str().c_str() ); // uses siglongjmp to "throw" to tctest failure handling code
@@ -84,6 +84,8 @@ void cleanup( TestObjs *objs );
 void test_empty_list( TestObjs *objs );
 void test_append( TestObjs *objs );
 void test_prepend( TestObjs *objs );
+void test_insert_before( TestObjs *objs );
+void test_insert_after( TestObjs *objs );
 
 ////////////////////////////////////////////////////////////////////////
 // Test program
@@ -98,6 +100,8 @@ int main( int argc, char **argv ) {
   TEST( test_empty_list );
   TEST( test_append );
   TEST( test_prepend );
+  TEST( test_insert_before );
+  TEST( test_insert_after );
 
   TEST_FINI();
 }
@@ -155,5 +159,45 @@ void test_prepend( TestObjs *objs ) {
   ASSERT( ilist.get_size() == 5 );
 
   // verify contents
+  check_list_contents( { 9, 0, 1, 2, 5 }, ilist );
+}
+
+void test_insert_before( TestObjs *objs ) {
+  auto &ilist = objs->ilist;
+
+  auto p1 = new IntListNode( 0 );
+  ilist.append( p1 );
+  ilist.append( new IntListNode( 1 ) );
+  auto p2 = new IntListNode( 5 );
+  ilist.append( p2 );
+
+  ASSERT( ilist.get_size() == 3 );
+
+  ilist.insert_before( new IntListNode( 9 ), p1 );
+  ASSERT( ilist.get_size() == 4 );
+  check_list_contents( { 9, 0, 1, 5 }, ilist );
+
+  ilist.insert_before( new IntListNode( 2 ), p2 );
+  ASSERT( ilist.get_size() == 5 );
+  check_list_contents( { 9, 0, 1, 2, 5 }, ilist );
+}
+
+void test_insert_after( TestObjs *objs ) {
+  auto &ilist = objs->ilist;
+
+  ilist.append( new IntListNode( 9 ) );
+  auto p1 = new IntListNode( 0 );
+  ilist.append( p1 );
+  auto p2 = new IntListNode( 2 );
+  ilist.append( p2 );
+
+  ASSERT( ilist.get_size() == 3 );
+
+  ilist.insert_after( new IntListNode( 1 ), p1 );
+  ASSERT( ilist.get_size() == 4 );
+  check_list_contents( { 9, 0, 1, 2 }, ilist );
+
+  ilist.insert_after( new IntListNode( 5 ), p2 );
+  ASSERT( ilist.get_size() == 5 );
   check_list_contents( { 9, 0, 1, 2, 5 }, ilist );
 }

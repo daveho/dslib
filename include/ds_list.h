@@ -79,13 +79,13 @@ public:
 
   //! @return pointer to the first node in the list
   ActualNodeType *get_first() const {
-    DSASSERT( !is_empty() );
+    DS_ASSERT( !is_empty() );
     return m_head;
   }
 
   //! @return pointer to the last node in the list
   ActualNodeType *get_last() const {
-    DSASSERT( !is_empty() );
+    DS_ASSERT( !is_empty() );
     return m_tail;
   }
 
@@ -97,7 +97,7 @@ public:
     if ( is_empty() )
       add_initial_node( node );
     else {
-      DSASSERT( m_tail != nullptr );
+      DS_ASSERT( m_tail != nullptr );
       m_tail->set_next( node );
       node->set_prev( m_tail );
       node->set_next( nullptr );
@@ -120,6 +120,40 @@ public:
     }
   }
 
+  //! Insert a new node before an existing node.
+  //! @param node_to_insert the node to insert
+  //! @param existing an existing list node
+  void insert_before( ActualNodeType *node_to_insert, ActualNodeType *existing ) {
+    if ( existing == m_head ) {
+      DS_ASSERT( existing->get_prev() == nullptr );
+      prepend( node_to_insert );
+    } else {
+      DS_ASSERT( existing->get_prev() != nullptr );
+      ActualNodeType *prev = existing->get_prev();
+      prev->set_next( node_to_insert );
+      node_to_insert->set_prev( prev );
+      node_to_insert->set_next( existing );
+      existing->set_prev( node_to_insert );
+    }
+  }
+
+  //! Insert a new node after an existing node.
+  //! @param node_to_insert the node to insert
+  //! @param existing an existing list node
+  void insert_after( ActualNodeType *node_to_insert, ActualNodeType *existing ) {
+    if ( existing == m_tail ) {
+      DS_ASSERT( existing->get_next() == nullptr );
+      append( node_to_insert );
+    } else {
+      DS_ASSERT( existing->get_next() != nullptr );
+      ActualNodeType *next = existing->get_next();
+      existing->set_next( node_to_insert );
+      node_to_insert->set_prev( existing );
+      node_to_insert->set_next( next );
+      next->set_prev( node_to_insert );
+    }
+  }
+
   //! @return the number of nodes in the list (note that this involves
   //           an O(N) traversal of the list nodes)
   unsigned get_size() const {
@@ -131,7 +165,7 @@ public:
 
 private:
   void add_initial_node( ActualNodeType *node ) {
-    DSASSERT( is_empty() );
+    DS_ASSERT( is_empty() );
     m_head = m_tail = node;
     node->set_next( nullptr );
     node->set_prev( nullptr );

@@ -9,13 +9,13 @@
 
 #ifndef NDEBUG
 // The project using dslib should define this function
-void dslib_assert_fail( const char *msg, const char *filename, int line ) __attribute__ ((noreturn));
+void ds_assert_fail( const char *msg, const char *filename, int line ) __attribute__ ((noreturn));
 
-#define DSASSERT( expr ) \
+#define DS_ASSERT( expr ) \
 if ( !(expr) ) \
-  dslib_assert_fail( "Assertion failed: " #expr, __FILE__, __LINE__ )
+  ds_assert_fail( "Assertion failed: " #expr, __FILE__, __LINE__ )
 #else
-#define DSASSERT( expr )
+#define DS_ASSERT( expr )
 #endif
 
 #endif // DS_UTIL_H
