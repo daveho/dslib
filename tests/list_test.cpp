@@ -2,7 +2,7 @@
 #include <string>
 #include <sstream>
 #include "tctest.h"
-#include "list.h"
+#include "ds_list.h"
 
 ////////////////////////////////////////////////////////////////////////
 // Integer list for testing

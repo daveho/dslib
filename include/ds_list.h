@@ -1,7 +1,7 @@
 #ifndef DSLIB_LIST_H
 #define DSLIB_LIST_H
 
-#include "util.h"
+#include "ds_util.h"
 
 //! Intrusive list node base class.
 //! @tparam ActualNodeType the actual node type, which should
