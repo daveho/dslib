@@ -65,7 +65,7 @@ public:
   //! Destructor.
   //! All of the nodes will be freed by the node free function.
   ~List() {
-    for ( auto p = m_head; p != nullptr; p = p->get_next() ) {
+    for ( auto p = m_head; p != nullptr; ) {
       auto next = p->get_next();
       m_free_node_fn( p );
       p = next;
