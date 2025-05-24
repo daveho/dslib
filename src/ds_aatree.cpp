@@ -39,7 +39,13 @@ bool AATreeImpl::insert( AATreeNode *node ) {
   // Attach the node
   *link = node;
 
-  // TODO: rebalance
+  // Rebalance
+  while ( path_len > 0 ) {
+    --path_len;
+    link = path[ path_len ];
+    *link = skew( *link );
+    *link = split( *link );
+  }
 
   return true;
 }
