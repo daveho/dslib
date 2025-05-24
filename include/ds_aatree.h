@@ -26,6 +26,14 @@ public:
   int get_level() const { return m_level; }
   void set_level( int level ) { m_level = level; }
 
+  // Get effective level of left child.
+  // This should only be called by AATreeImpl, where it's used
+  // in the implementation of the remove() member function.
+  int get_left_level() const { return m_left != nullptr ? m_left->get_level() : m_level; }
+
+  // As above.
+  int get_right_level() const { return m_right != nullptr ? m_right->get_level() : m_level; }
+
   // Get pointer to this node's left pointer.
   // Only AATreeImpl should  call this function.
   AATreeNode **get_ptr_to_left() { return &m_left; }
@@ -33,6 +41,8 @@ public:
   // Get pointer to this node's right pointer.
   // Only AATreeImpl should  call this function.
   AATreeNode **get_ptr_to_right() { return &m_right; }
+
+  bool is_leaf() const { return m_left == nullptr && m_right == nullptr; }
 };
 
 //! AA tree implementation.
@@ -44,9 +54,12 @@ public:
   //! compares as less than right node
   typedef bool LessThanFn( const AATreeNode *left, const AATreeNode *right );
 
-  // TODO: we'll likely need a NodeSwapContentsFn function type,
-  // because for deletion we'll need to move the contents of a leaf
-  // to the position of the node whose contents are being deleted
+  //! Type of node contents copy function.
+  //! This is used to handle the situation where a non-leaf node
+  //! is deleted: we find an easy-to-remove node to be a "victim",
+  //! copy the contents of the victim into the "deleted" node, and
+  //! then remove the victim.
+  typedef void NodeCopyFn( AATreeNode *from, AATreeNode *to );
 
   //! Node free function type
   typedef void FreeNodeFn( AATreeNode *node );
@@ -54,6 +67,7 @@ public:
 private:
   AATreeNode *m_root;
   LessThanFn *m_less_than_fn;
+  NodeCopyFn *m_node_copy_fn;
   FreeNodeFn *m_free_node_fn;
 
   NO_VALUE_SEMANTICS( AATreeImpl );
@@ -64,16 +78,18 @@ private:
   static constexpr const int MAX_HEIGHT = 32;
 
 public:
-  AATreeImpl( LessThanFn *less_than_fn, FreeNodeFn *free_node_fn );
+  AATreeImpl( LessThanFn *less_than_fn, NodeCopyFn *node_copy_fn, FreeNodeFn *free_node_fn );
   ~AATreeImpl();
 
   bool insert( AATreeNode *node );
   AATreeNode *find( const AATreeNode &node ) const;
   bool contains( const AATreeNode &node ) const;
+  bool remove( const AATreeNode &node );
 
 private:
   static AATreeNode *skew( AATreeNode *t );
   static AATreeNode *split( AATreeNode *t );
+  static void adjust_level( AATreeNode *t );
 };
 
 //! Balanced binary search tree class.
@@ -90,8 +106,8 @@ public:
   //! @param less_than_fn function to compare two tree nodes to determine
   //!                     whether the left node is less than the right node
   //! @param free_node_fn function to delete a tree node
-  AATree( AATreeImpl::LessThanFn *less_than_fn, AATreeImpl::FreeNodeFn *free_node_fn )
-    : m_impl( less_than_fn, free_node_fn )
+  AATree( AATreeImpl::LessThanFn *less_than_fn, AATreeImpl *node_copy_fn, AATreeImpl::FreeNodeFn *free_node_fn )
+    : m_impl( less_than_fn, node_copy_fn, free_node_fn )
   { }
 
   //! Destructor.
@@ -122,6 +138,14 @@ public:
   //!         false otherwise
   bool contains( const ActualNodeType &node ) const {
     return m_impl.contains( node );
+  }
+
+  //! Remove the node equal to the given one.
+  //! If such a node is found, it is deleted using the free node function.
+  //! @return true if a node was deleted, false if the tree did not
+  //!         contain a node equal to the given one
+  bool remove( const ActualNodeType &node ) {
+    return m_impl.remove( node );
   }
 };
 
