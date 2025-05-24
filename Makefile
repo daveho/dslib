@@ -1,7 +1,7 @@
 CXX = g++
 CXXFLAGS = -g -Wall -Iinclude
 
-SRCS = ds_list.cpp
+SRCS = ds_list.cpp ds_aatree.cpp
 OBJS = $(SRCS:%.cpp=build/%.o)
 
 TEST_SRCS = tctest.cpp list_test.cpp aatree_test.cpp

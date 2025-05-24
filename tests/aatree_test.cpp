@@ -10,7 +10,7 @@
 // Integer tree node type for testing
 ////////////////////////////////////////////////////////////////////////
 
-class IntAATreeNode : public AATreeNode< IntAATreeNode > {
+class IntAATreeNode : public AATreeNode {
 private:
   int m_val;
 
@@ -23,16 +23,19 @@ public:
   void set_val( int val ) { m_val = val; }
   int get_val() const { return m_val; }
 
-  static void free_node_fn( IntAATreeNode *node );
-  static bool less_than_fn( const IntAATreeNode *left, const IntAATreeNode *right );
+  static void free_node_fn( AATreeNode *node );
+  static bool less_than_fn( const AATreeNode *left, const AATreeNode *right );
 };
 
-void IntAATreeNode::free_node_fn( IntAATreeNode *node ) {
-  delete node;
+void IntAATreeNode::free_node_fn( AATreeNode *node ) {
+  delete static_cast< IntAATreeNode* >( node );
 }
 
-bool IntAATreeNode::less_than_fn( const IntAATreeNode *left, const IntAATreeNode *right ) {
-  return left->m_val < right->m_val;  
+bool IntAATreeNode::less_than_fn( const AATreeNode *left_, const AATreeNode *right_ ) {
+  //return left->m_val < right->m_val;  
+  const IntAATreeNode *left = static_cast< const IntAATreeNode* >( left_ );
+  const IntAATreeNode *right = static_cast< const IntAATreeNode* >( right_ );
+  return left->m_val < right->m_val;
 }
 
 ////////////////////////////////////////////////////////////////////////
