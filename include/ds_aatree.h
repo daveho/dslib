@@ -3,6 +3,8 @@
 
 #include "ds_util.h"
 
+namespace dslib {
+
 //! Intrusive AA tree node base class.
 class AATreeNode {
 private:
@@ -118,5 +120,7 @@ public:
     return m_impl.contains( node );
   }
 };
+
+} // end namespace dslib
 
 #endif // DS_AATREE_H

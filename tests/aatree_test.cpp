@@ -10,7 +10,7 @@
 // Integer tree node type for testing
 ////////////////////////////////////////////////////////////////////////
 
-class IntAATreeNode : public AATreeNode {
+class IntAATreeNode : public dslib::AATreeNode {
 private:
   int m_val;
 
@@ -23,15 +23,15 @@ public:
   void set_val( int val ) { m_val = val; }
   int get_val() const { return m_val; }
 
-  static void free_node_fn( AATreeNode *node );
-  static bool less_than_fn( const AATreeNode *left, const AATreeNode *right );
+  static void free_node_fn( dslib::AATreeNode *node );
+  static bool less_than_fn( const dslib::AATreeNode *left, const dslib::AATreeNode *right );
 };
 
-void IntAATreeNode::free_node_fn( AATreeNode *node ) {
+void IntAATreeNode::free_node_fn( dslib::AATreeNode *node ) {
   delete static_cast< IntAATreeNode* >( node );
 }
 
-bool IntAATreeNode::less_than_fn( const AATreeNode *left_, const AATreeNode *right_ ) {
+bool IntAATreeNode::less_than_fn( const dslib::AATreeNode *left_, const dslib::AATreeNode *right_ ) {
   //return left->m_val < right->m_val;  
   const IntAATreeNode *left = static_cast< const IntAATreeNode* >( left_ );
   const IntAATreeNode *right = static_cast< const IntAATreeNode* >( right_ );
@@ -53,7 +53,7 @@ void ds_assert_fail( const char *msg, const char *filename, int line ) {
 ////////////////////////////////////////////////////////////////////////
 
 struct TestObjs {
-  AATree< IntAATreeNode > itree;
+  dslib::AATree< IntAATreeNode > itree;
 
   TestObjs()
     : itree( &IntAATreeNode::less_than_fn, &IntAATreeNode::free_node_fn )

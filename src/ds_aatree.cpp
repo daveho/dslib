@@ -1,5 +1,7 @@
 #include "ds_aatree.h"
 
+namespace dslib {
+
 AATreeImpl::AATreeImpl( LessThanFn *less_than_fn, FreeNodeFn *free_node_fn )
   : m_root( nullptr )
   , m_less_than_fn( less_than_fn )
@@ -58,3 +60,5 @@ AATreeNode *AATreeImpl::find( const AATreeNode &node ) const {
 bool AATreeImpl::contains( const AATreeNode &node ) const {
   return find( node ) != nullptr;
 }
+
+} // namespace dslib
