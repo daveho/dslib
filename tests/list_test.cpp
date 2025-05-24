@@ -9,7 +9,7 @@
 // Integer list for testing
 ////////////////////////////////////////////////////////////////////////
 
-class IntListNode : public ListNode< IntListNode > {
+class IntListNode : public ListNode {
 private:
   int m_val;
 
@@ -21,11 +21,11 @@ public:
   int get_val() const { return m_val; }
   void set_val( int val ) { m_val = val; }
 
-  static void free_int_list_node( IntListNode *node );
+  static void free_int_list_node( ListNode *node );
 };
 
-void IntListNode::free_int_list_node( IntListNode *node ) {
-  delete node;
+void IntListNode::free_int_list_node( ListNode *node ) {
+  delete static_cast< IntListNode* >( node );
 }
 
 void check_list_contents( const std::vector<int> &expected, const List< IntListNode > &list ) {
@@ -36,7 +36,7 @@ void check_list_contents( const std::vector<int> &expected, const List< IntListN
   for ( auto i = expected.begin(); i != expected.end(); ++i ) {
     ASSERT( p != nullptr );
     ASSERT( *i == p->get_val() );
-    p = p->get_next();
+    p = list.next( p );
   }
   ASSERT( p == nullptr );
 
@@ -45,7 +45,7 @@ void check_list_contents( const std::vector<int> &expected, const List< IntListN
   for ( auto i = expected.rbegin(); i != expected.rend(); ++i ) {
     ASSERT( q != nullptr );
     ASSERT( *i == q->get_val() );
-    q = q->get_prev();
+    q = list.prev( q );
   }
   ASSERT( q == nullptr );
 }
