@@ -26,6 +26,14 @@ public:
 
   int get_level() const { return m_level; }
   void set_level( int level ) { m_level = level; }
+
+  // Get pointer to this node's left pointer.
+  // Only AATree should  call this function.
+  ActualNodeType **get_ptr_to_left() { return &m_left; }
+
+  // Get pointer to this node's right pointer.
+  // Only AATree should  call this function.
+  ActualNodeType **get_ptr_to_right() { return &m_right; }
 };
 
 template< typename ActualNodeType >
@@ -83,14 +91,15 @@ public:
     ActualNodeType **link = &m_root;
 
     while ( *link != nullptr ) {
+      DS_ASSERT( path_len < MAX_HEIGHT );
       path[ path_len ] = link;
       ++path_len;
       if ( m_less_than_fn( node, *link ) )
-        link = &(*link)->m_left;
+        link = (*link)->get_ptr_to_left();
       else {
         if ( !m_less_than_fn( *link, node ) )
           return false; // node compares as equal to an existing node
-        link = &(*link)->m_right;
+        link = (*link)->get_ptr_to_right();
       }
     }
 
@@ -100,6 +109,32 @@ public:
     // TODO: rebalance
 
     return true;
+  }
+
+  //! Search for a node in the tree comparing as equal to the given one.
+  //! @param node a node
+  //! @return pointer to a tree nod equal to the given node,
+  //!         or nullptr if the tree does not contain a node equal to
+  //!         the given one
+  ActualNodeType *find( const ActualNodeType &node ) const {
+    ActualNodeType *p = m_root;
+    while ( p != nullptr ) {
+      if ( m_less_than_fn( &node, p ) )
+        p = p->get_left();     // continue in left subtree
+      else if ( !m_less_than_fn( p, &node ) )
+        return p;              // p is equal to the given node
+      else
+        p = p->get_right();    // continue in right subtree
+    }
+    return nullptr;            // search failed
+  }
+
+  //! Determine if the tree contains a node equal to the given one.
+  //! @param node a node
+  //! @return true if the tree contains a node equal to the given one,
+  //!         false otherwise
+  bool contains( const ActualNodeType &node ) const {
+    return find( node ) != nullptr;
   }
 };
 
