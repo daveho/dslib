@@ -9,26 +9,26 @@
 // Integer list for testing
 ////////////////////////////////////////////////////////////////////////
 
-class IntListNode : public ListNode {
+class IntListNode : public dslib::ListNode {
 private:
   int m_val;
 
   NO_VALUE_SEMANTICS( IntListNode );
 
 public:
-  IntListNode( int val ) : ListNode(), m_val( val ) { }
+  IntListNode( int val ) : dslib::ListNode(), m_val( val ) { }
 
   int get_val() const { return m_val; }
   void set_val( int val ) { m_val = val; }
 
-  static void free_int_list_node( ListNode *node );
+  static void free_int_list_node( dslib::ListNode *node );
 };
 
-void IntListNode::free_int_list_node( ListNode *node ) {
+void IntListNode::free_int_list_node( dslib::ListNode *node ) {
   delete static_cast< IntListNode* >( node );
 }
 
-void check_list_contents( const std::vector<int> &expected, const List< IntListNode > &list ) {
+void check_list_contents( const std::vector<int> &expected, const dslib::List< IntListNode > &list ) {
   ASSERT( expected.size() == list.get_size() );
 
   // check in forward direction
@@ -66,7 +66,7 @@ void ds_assert_fail( const char *msg, const char *filename, int line ) {
 ////////////////////////////////////////////////////////////////////////
 
 struct TestObjs {
-  List< IntListNode > ilist;
+  dslib::List< IntListNode > ilist;
 
   TestObjs() : ilist( &IntListNode::free_int_list_node ) {
 

@@ -3,6 +3,8 @@
 
 #include "ds_util.h"
 
+namespace dslib {
+
 //! Intrusive list node base class.
 class ListNode {
 private:
@@ -151,5 +153,7 @@ public:
   //           an O(N) traversal of the list nodes)
   unsigned get_size() const { return m_impl.get_size(); }
 };
+
+} // end namespace dslib
 
 #endif // DS_LIST_H

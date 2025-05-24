@@ -1,5 +1,7 @@
 #include "ds_list.h"
 
+namespace dslib {
+
 ListImpl::ListImpl( FreeNodeFn *free_node_fn )
   : m_free_node_fn( free_node_fn )
   , m_head( nullptr )
@@ -122,3 +124,5 @@ void ListImpl::add_initial_node( ListNode *node ) {
   node->set_next( nullptr );
   node->set_prev( nullptr );
 }
+
+} // end namespace dslib
