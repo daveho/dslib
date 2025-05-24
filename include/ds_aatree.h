@@ -70,6 +70,10 @@ public:
   bool insert( AATreeNode *node );
   AATreeNode *find( const AATreeNode &node ) const;
   bool contains( const AATreeNode &node ) const;
+
+private:
+  static AATreeNode *skew( AATreeNode *t );
+  static AATreeNode *split( AATreeNode *t );
 };
 
 //! Balanced binary search tree class.

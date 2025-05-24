@@ -61,4 +61,61 @@ bool AATreeImpl::contains( const AATreeNode &node ) const {
   return find( node ) != nullptr;
 }
 
+AATreeNode *AATreeImpl::skew( AATreeNode *t ) {
+  if ( t == nullptr )
+    return nullptr;
+
+  AATreeNode *left = t->get_left();
+
+  if ( left == nullptr )
+    return t;
+
+  if ( t->get_level() == left->get_level() ) {
+    //            |             |
+    //            v             v
+    //   left <-- t            left -->  t
+    //  /   \      \   ==>    /         / \    :-)
+    // A     B      R        A         B   R
+    t->set_left( left->get_right() );
+    left->set_right( t );
+    return left;
+  }
+
+  return t;
+}
+
+AATreeNode *AATreeImpl::split( AATreeNode *t ) {
+  if ( t == nullptr )
+    return nullptr;
+
+  AATreeNode *right = t->get_right();
+
+  if ( right == nullptr )
+    return t;
+
+  AATreeNode *x =  right->get_right();
+
+  if ( x == nullptr )
+    return t;
+
+  if ( t->get_level() == x->get_level() ) {
+    // There are two horizontal right links, so t's right node
+    // needs to be pulled up.
+    //
+    //      |                              |
+    //      v                              v
+    //      t -->  right --> x  ==>      right
+    //     /      /                     /     \     :-)
+    //    A      B                     t       x
+    //                                / \           :-)
+    //                               A   B
+    t->set_right( right->get_left() );
+    right->set_left( t );
+    right->set_level( right->get_level() + 1 );
+    return right;
+  }
+
+  return t;
+}
+
 } // namespace dslib
