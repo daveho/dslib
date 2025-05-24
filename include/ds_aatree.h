@@ -4,6 +4,9 @@
 #include "ds_util.h"
 
 template< typename ActualNodeType >
+class AATree;
+
+template< typename ActualNodeType >
 class AATreeNode {
 private:
   ActualNodeType *m_left, *m_right;
@@ -23,9 +26,6 @@ public:
 
   int get_level() const { return m_level; }
   void set_level( int level ) { m_level = level; }
-
-  // AATree class gets direct access to level and left/right pointers
-  friend class AATree;
 };
 
 template< typename ActualNodeType >
@@ -33,7 +33,7 @@ class AATree {
 public:
   //! Type of node comparison function: returns true IFF left node
   //! compares as less than right node
-  typedef bool LessThanFn( ActualNodeType *left, ActualNodeType *right );
+  typedef bool LessThanFn( const ActualNodeType *left, const ActualNodeType *right );
 
   // TODO: we'll likely need a NodeSwapContentsFn function type,
   // because for deletion we'll need to move the contents of a leaf
@@ -77,12 +77,13 @@ public:
     DS_ASSERT( node->get_right() == nullptr );
     DS_ASSERT( node->get_level() == 1 );
 
-    ActualNodeType *path[ MAX_HEIGHT ];
+    // Keep track of pointers that may need to be updated
+    ActualNodeType **path[ MAX_HEIGHT ];
     int path_len = 0;
     ActualNodeType **link = &m_root;
 
     while ( *link != nullptr ) {
-      path[ path_len ] = *link;
+      path[ path_len ] = link;
       ++path_len;
       if ( m_less_than_fn( node, *link ) )
         link = &(*link)->m_left;

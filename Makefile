@@ -1,7 +1,7 @@
 CXX = g++
 CXXFLAGS = -g -Wall -Iinclude
 
-TEST_SRCS = tctest.cpp list_test.cpp
+TEST_SRCS = tctest.cpp list_test.cpp aatree_test.cpp
 
 TEST_EXES = build/list_test
 
@@ -12,6 +12,9 @@ build/%.o : tests/%.cpp
 	$(CXX) $(CXXFLAGS) -Itests -c tests/$*.cpp -o build/$*.o
 
 build/list_test : build/list_test.o build/tctest.o
+	$(CXX) -o $@ $+
+
+build/aatree_test : build/aatree_test.o build/tctest.o
 	$(CXX) -o $@ $+
 
 clean :
