@@ -7,6 +7,10 @@ AATreeImpl::AATreeImpl( LessThanFn *less_than_fn, CopyNodeFn *copy_node_fn, Free
   , m_less_than_fn( less_than_fn )
   , m_copy_node_fn( copy_node_fn )
   , m_free_node_fn( free_node_fn ) {
+  // The special level-0 "nil" node is pointed to by all
+  // "missing" level-1 links.
+  m_nil.set_level( 0 );
+  m_root = &m_nil;
 }
 
 AATreeImpl::~AATreeImpl() {
@@ -24,7 +28,7 @@ bool AATreeImpl::insert( AATreeNode *node ) {
   int path_len = 0;
   AATreeNode **link = &m_root;
 
-  while ( *link != nullptr ) {
+  while ( *link != &m_nil ) {
     DS_ASSERT( path_len < MAX_HEIGHT );
     path[ path_len ] = link;
     ++path_len;
@@ -41,6 +45,11 @@ bool AATreeImpl::insert( AATreeNode *node ) {
   // Attach the node
   *link = node;
 
+  // Make the nil node the left and right child of the
+  // inserted node
+  node->set_left( &m_nil );
+  node->set_right( &m_nil );
+
   // Rebalance
   while ( path_len > 0 ) {
     --path_len;
@@ -54,7 +63,7 @@ bool AATreeImpl::insert( AATreeNode *node ) {
 
 AATreeNode *AATreeImpl::find( const AATreeNode &node ) const {
   AATreeNode *p = m_root;
-  while ( p != nullptr ) {
+  while ( p != &m_nil ) {
     if ( m_less_than_fn( &node, p ) )
       p = p->get_left();     // continue in left subtree
     else if ( !m_less_than_fn( p, &node ) )
@@ -76,7 +85,7 @@ bool AATreeImpl::remove( const AATreeNode &node ) {
   AATreeNode **link = &m_root;
 
   // Find a node equal to the given one
-  while ( *link != nullptr ) {
+  while ( *link != &m_nil ) {
     DS_ASSERT( path_len < MAX_HEIGHT );
     path[ path_len ] = link;
     ++path_len;
@@ -94,7 +103,7 @@ bool AATreeImpl::remove( const AATreeNode &node ) {
       link = (*link)->get_ptr_to_right();
   }
 
-  if ( *link == nullptr )
+  if ( *link == &m_nil )
     return false;  // the tree doesn't contain a matching node
 
   // Refer to the node *link points to as "t". There are three cases:
@@ -134,7 +143,7 @@ bool AATreeImpl::remove( const AATreeNode &node ) {
       link = (*link)->get_ptr_to_left();
     }
 
-    DS_ASSERT( (*link)->get_left() == nullptr );
+    DS_ASSERT( (*link)->get_left() == &m_nil );
 
     AATreeNode *victim = *link;
 
@@ -160,12 +169,12 @@ bool AATreeImpl::remove( const AATreeNode &node ) {
 }
 
 AATreeNode *AATreeImpl::skew( AATreeNode *t ) {
-  if ( t == nullptr )
-    return nullptr;
+  if ( t == &m_nil )
+    return &m_nil;
 
   AATreeNode *left = t->get_left();
 
-  if ( left == nullptr )
+  if ( left == &m_nil )
     return t;
 
   if ( t->get_level() == left->get_level() ) {
@@ -187,17 +196,17 @@ AATreeNode *AATreeImpl::skew( AATreeNode *t ) {
 }
 
 AATreeNode *AATreeImpl::split( AATreeNode *t ) {
-  if ( t == nullptr )
+  if ( t == &m_nil )
     return nullptr;
 
   AATreeNode *right = t->get_right();
 
-  if ( right == nullptr )
+  if ( right == &m_nil )
     return t;
 
-  AATreeNode *x =  right->get_right();
+  AATreeNode *x = right->get_right();
 
-  if ( x == nullptr )
+  if ( x == &m_nil )
     return t;
 
   if ( t->get_level() == x->get_level() ) {
@@ -221,7 +230,7 @@ AATreeNode *AATreeImpl::split( AATreeNode *t ) {
 }
 
 void AATreeImpl::adjust_level( AATreeNode *t ) {
-  if ( t == nullptr )
+  if ( t == &m_nil )
     return;
 
   // From Andersson's paper (p.3, "Deletion"):
@@ -234,7 +243,7 @@ void AATreeImpl::adjust_level( AATreeNode *t ) {
      r_level = t->get_right_level();
 
   bool has_right_child_at_same_level =
-    t->get_right() != nullptr && r_level == t->get_level();
+    t->get_right() != &m_nil && r_level == t->get_level();
 
   if ( l_level < t_level - 1 || r_level < t_level - 1 ) {
     t->set_level( t_level - 1 );
@@ -244,11 +253,11 @@ void AATreeImpl::adjust_level( AATreeNode *t ) {
 }
 
 #ifdef DSLIB_CHECK_INTEGRITY
-bool AATreeImpl::is_valid( AATreeNode *node, int expected_level ) {
+bool AATreeImpl::is_valid( AATreeNode *node, int expected_level ) const {
   AATreeNode *left = node->get_left(), *right = node->get_right();
 
   // True leaf nodes must be at level 1
-  if ( left == nullptr && right == nullptr )
+  if ( left == &m_nil && right == &m_nil )
     return node->get_level() == 1;
 
   // If there is a left child, it must be at the next lower level

@@ -66,6 +66,7 @@ public:
 
 private:
   AATreeNode *m_root;
+  AATreeNode m_nil;
   LessThanFn *m_less_than_fn;
   CopyNodeFn *m_copy_node_fn;
   FreeNodeFn *m_free_node_fn;
@@ -88,7 +89,7 @@ public:
 
 #ifdef DSLIB_CHECK_INTEGRITY
   // Does AA-tree rooted at given node satisfy the AA-tree properties?
-  static bool is_valid( AATreeNode *node, int expected_level );
+  bool is_valid( AATreeNode *node, int expected_level ) const;
 
   // Does the overall AA-tree satisfy the AA-tree properties?
   bool is_valid() const {
@@ -102,9 +103,9 @@ public:
 #endif
 
 private:
-  static AATreeNode *skew( AATreeNode *t );
-  static AATreeNode *split( AATreeNode *t );
-  static void adjust_level( AATreeNode *t );
+  AATreeNode *skew( AATreeNode *t );
+  AATreeNode *split( AATreeNode *t );
+  void adjust_level( AATreeNode *t );
 };
 
 //! Balanced binary search tree class.
