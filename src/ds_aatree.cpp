@@ -201,7 +201,7 @@ AATreeNode *AATreeImpl::skew( AATreeNode *t ) {
 
 AATreeNode *AATreeImpl::split( AATreeNode *t ) {
   if ( t == &m_nil )
-    return nullptr;
+    return &m_nil;
 
   AATreeNode *right = t->get_right();
 
