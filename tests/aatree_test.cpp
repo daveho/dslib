@@ -165,7 +165,8 @@ void test_remove( TestObjs *objs ) {
     itree.insert( new IntAATreeNode( *i ) );
 
   for ( auto i = TEST_VALS.begin(); i != TEST_VALS.end(); ++i ) {
-    itree.remove( IntAATreeNode( *i ) );
+    bool removed = itree.remove( IntAATreeNode( *i ) );
+    ASSERT( removed );
     ASSERT( !itree.contains( IntAATreeNode( *i ) ) );
     ASSERT( itree.is_valid() );
   }
