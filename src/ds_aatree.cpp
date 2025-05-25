@@ -259,20 +259,6 @@ void AATreeImpl::adjust_level( AATreeNode *t ) {
     if ( r_at_same_level )
       right->set_level( t_level - 1 );
   }
-#if 0
-  int t_level = t->get_level(),
-     l_level = t->get_left_level(),
-     r_level = t->get_right_level();
-
-  bool has_right_child_at_same_level =
-    t->get_right() != &m_nil && r_level == t->get_level();
-
-  if ( l_level < t_level - 1 || r_level < t_level - 1 ) {
-    t->set_level( t_level - 1 );
-    if ( has_right_child_at_same_level )
-      t->get_right()->set_level( t_level - 1 );
-  }
-#endif
 }
 
 #ifdef DSLIB_CHECK_INTEGRITY
