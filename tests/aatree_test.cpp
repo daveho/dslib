@@ -6,6 +6,7 @@
 #include <random>
 #include "tctest.h"
 #include "ds_aatree.h"
+#include "ds_aatreeprint.h"
 
 ////////////////////////////////////////////////////////////////////////
 // Integer tree node type for testing
@@ -45,6 +46,31 @@ bool IntAATreeNode::less_than_fn( const dslib::AATreeNode *left_, const dslib::A
   const IntAATreeNode *left = static_cast< const IntAATreeNode* >( left_ );
   const IntAATreeNode *right = static_cast< const IntAATreeNode* >( right_ );
   return left->m_val < right->m_val;
+}
+
+////////////////////////////////////////////////////////////////////////
+// Support for printing the test AATree
+////////////////////////////////////////////////////////////////////////
+
+class IntAATreePrint : public dslib::AATreePrint {
+public:
+  IntAATreePrint();
+  virtual ~IntAATreePrint();
+
+  virtual std::string node_contents_to_str( dslib::AATreeNode *t ) const;
+};
+
+IntAATreePrint::IntAATreePrint() {
+
+}
+
+IntAATreePrint::~IntAATreePrint() {
+
+}
+
+std::string IntAATreePrint::node_contents_to_str( dslib::AATreeNode *t_ ) const {
+  IntAATreeNode *t = static_cast< IntAATreeNode* >( t_ );
+  return std::to_string( t->get_val() );
 }
 
 ////////////////////////////////////////////////////////////////////////
@@ -176,10 +202,18 @@ void test_remove( TestObjs *objs ) {
 #if 1
   bool removed;
 
+  IntAATreePrint tp;
+
+  // Initial tree configuration
+  std::cout << "\n";
+  tp.print( itree.get_root() );
+
   removed = itree.remove( IntAATreeNode( 16 ) );
   ASSERT( removed );
   ASSERT( !itree.contains( IntAATreeNode( 16 ) ) );
   ASSERT( itree.is_valid() );
+  std::cout << "\n";
+  tp.print( itree.get_root() );
 
   removed = itree.remove( IntAATreeNode( 53 ) );
   ASSERT( removed );

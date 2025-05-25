@@ -96,6 +96,9 @@ public:
       return true;
     return is_valid( m_root, m_root->get_level() );
   }
+
+  // Get pointer to root node
+  AATreeNode *get_root() const { return m_root; }
 #endif
 
 private:
@@ -165,6 +168,10 @@ public:
 #ifdef DSLIB_CHECK_INTEGRITY
   bool is_valid() const {
     return m_impl.is_valid();
+  }
+
+  ActualNodeType *get_root() const {
+    return static_cast< ActualNodeType* >( m_impl.get_root() );
   }
 #endif
 };

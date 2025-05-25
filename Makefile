@@ -1,7 +1,7 @@
 CXX = g++
 CXXFLAGS = -g -Wall -Iinclude -DDSLIB_CHECK_INTEGRITY
 
-SRCS = ds_list.cpp ds_aatree.cpp
+SRCS = ds_list.cpp ds_aatree.cpp ds_aatreeprint.cpp
 OBJS = $(SRCS:%.cpp=build/%.o)
 
 TEST_SRCS = tctest.cpp list_test.cpp aatree_test.cpp
