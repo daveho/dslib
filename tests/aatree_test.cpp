@@ -69,6 +69,9 @@ struct TestObjs {
   { }
 };
 
+// some arbitrary test data
+const std::vector< int > TEST_VALS = { 16, 53, 3, 98, 79, 80, 17, 11, 42, 86 };
+
 ////////////////////////////////////////////////////////////////////////
 // Function prototypes
 ////////////////////////////////////////////////////////////////////////
@@ -80,6 +83,7 @@ void cleanup( TestObjs *objs );
 void test_insert( TestObjs *objs );
 void test_insert_many( TestObjs *objs );
 void test_remove_one( TestObjs *objs );
+void test_remove( TestObjs *objs );
 
 ////////////////////////////////////////////////////////////////////////
 // Test program
@@ -94,6 +98,7 @@ int main( int argc, char **argv ) {
   TEST( test_insert );
   TEST( test_insert_many );
   TEST( test_remove_one );
+  TEST( test_remove );
 
   TEST_FINI();
 }
@@ -114,14 +119,13 @@ void cleanup( TestObjs *objs ) {
 void test_insert( TestObjs *objs ) {
   auto &itree = objs->itree;
 
-  const std::vector< int > VALS = { 16, 53, 3, 98, 79, 80, 17, 11, 42, 86 };
-  for ( auto i = VALS.begin(); i != VALS.end(); ++i ) {
+  for ( auto i = TEST_VALS.begin(); i != TEST_VALS.end(); ++i ) {
     itree.insert( new IntAATreeNode( *i ) );
     ASSERT( itree.is_valid() );
   }
   
   for ( int i = 0; i < 100; ++i ) {
-    if ( std::find( VALS.begin(), VALS.end(), i ) != VALS.end() )
+    if ( std::find( TEST_VALS.begin(), TEST_VALS.end(), i ) != TEST_VALS.end() )
       ASSERT( itree.contains( i ) );
     else
       ASSERT( !itree.contains( i ) );
@@ -152,4 +156,17 @@ void test_remove_one( TestObjs *objs ) {
   ASSERT( itree.contains( IntAATreeNode( 42 ) ) );
   bool removed = itree.remove( IntAATreeNode( 42 ) );
   ASSERT( removed );
+}
+
+void test_remove( TestObjs *objs ) {
+  auto &itree = objs->itree;
+  
+  for ( auto i = TEST_VALS.begin(); i != TEST_VALS.end(); ++i )
+    itree.insert( new IntAATreeNode( *i ) );
+
+  for ( auto i = TEST_VALS.begin(); i != TEST_VALS.end(); ++i ) {
+    itree.remove( IntAATreeNode( *i ) );
+    ASSERT( !itree.contains( IntAATreeNode( *i ) ) );
+    ASSERT( itree.is_valid() );
+  }
 }
