@@ -107,7 +107,7 @@ bool AATreeImpl::remove( const AATreeNode &node ) {
     return false;  // the tree doesn't contain a matching node
 
   // Refer to the node *link points to as "t". There are three cases:
-  // 1. If t points to a leaf, that node can be removed directly
+  // 1. If t points to a true leaf, that node can be removed directly
   // 2. If t points to a node with a single child, that child
   //    becomes the root of the subtree that t was
   //    originally the root of, and t is removed
@@ -115,15 +115,15 @@ bool AATreeImpl::remove( const AATreeNode &node ) {
   //    a "victim". The contents of the victim node are copied into
   //    t, and then the victim node is removed.
   AATreeNode *t = *link;
-  if ( t->is_leaf() ) {
+  if ( t->get_left() == &m_nil && t->get_right() == &m_nil ) {
     // Case 1
-    *link = nullptr;
+    *link = &m_nil;
     m_free_node_fn( t );
-  } else if ( t->get_left() == nullptr ) {
+  } else if ( t->get_left() == &m_nil ) {
     // Case 2 (left subtree is empty)
     *link = t->get_right();
     m_free_node_fn( t );
-  } else if ( t->get_right() == nullptr ) {
+  } else if ( t->get_right() == &m_nil ) {
     // Case 2 (right subtree is empty)
     *link = t->get_left();
     m_free_node_fn( t );
@@ -152,6 +152,9 @@ bool AATreeImpl::remove( const AATreeNode &node ) {
 
     // The subtree rooted by the victim node is replaced by the
     // victim node's right subtree.
+    DS_ASSERT( victim != &m_nil );
+    DS_ASSERT( victim->get_left() != nullptr );
+    DS_ASSERT( victim->get_right() != nullptr );
     *link = victim->get_right();
     m_free_node_fn( victim );
   }
@@ -160,6 +163,7 @@ bool AATreeImpl::remove( const AATreeNode &node ) {
   while ( path_len > 0 ) {
     --path_len;
     link = path[ path_len ];
+    DS_ASSERT( *link != nullptr );
     adjust_level( *link );
     *link = skew( *link );
     *link = split( *link );

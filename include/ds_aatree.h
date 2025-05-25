@@ -41,8 +41,6 @@ public:
   // Get pointer to this node's right pointer.
   // Only AATreeImpl should  call this function.
   AATreeNode **get_ptr_to_right() { return &m_right; }
-
-  bool is_leaf() const { return m_left == nullptr && m_right == nullptr; }
 };
 
 //! AA tree implementation.
