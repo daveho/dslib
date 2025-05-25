@@ -3,6 +3,7 @@
 #include <sstream>
 #include <vector>
 #include <algorithm>
+#include <random>
 #include "tctest.h"
 #include "ds_aatree.h"
 
@@ -77,6 +78,7 @@ TestObjs *setup();
 void cleanup( TestObjs *objs );
 // test functions
 void test_insert( TestObjs *objs );
+void test_insert_many( TestObjs *objs );
 
 ////////////////////////////////////////////////////////////////////////
 // Test program
@@ -89,6 +91,7 @@ int main( int argc, char **argv ) {
   TEST_INIT();
 
   TEST( test_insert );
+  TEST( test_insert_many );
 
   TEST_FINI();
 }
@@ -121,4 +124,21 @@ void test_insert( TestObjs *objs ) {
     else
       ASSERT( !itree.contains( i ) );
   }
+}
+
+void test_insert_many( TestObjs *objs ) {
+  auto rng = std::default_random_engine();
+  std::vector<int> vals;
+  for ( int i = 0; i < 100000; ++i )
+    vals.push_back( i );
+  std::shuffle( vals.begin(), vals.end(), rng );
+
+  auto &itree = objs->itree;
+
+  for ( auto i = vals.begin(); i != vals.end(); ++i )
+    itree.insert( new IntAATreeNode( *i ) );
+  ASSERT( itree.is_valid() );  
+
+  for ( auto i = vals.begin(); i != vals.end(); ++i )
+    ASSERT( itree.contains( IntAATreeNode( *i ) ) );
 }
