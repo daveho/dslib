@@ -190,7 +190,7 @@ void test_remove( TestObjs *objs ) {
   for ( auto i = TEST_VALS.begin(); i != TEST_VALS.end(); ++i )
     itree.insert( new IntAATreeNode( *i ) );
 
-#if 0
+#if 1
   for ( auto i = TEST_VALS.begin(); i != TEST_VALS.end(); ++i ) {
     bool removed = itree.remove( IntAATreeNode( *i ) );
     ASSERT( removed );
@@ -199,7 +199,7 @@ void test_remove( TestObjs *objs ) {
   }
 #endif
 
-#if 1
+#if 0
   bool removed;
 
   IntAATreePrint tp;
