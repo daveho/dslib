@@ -79,6 +79,7 @@ void cleanup( TestObjs *objs );
 // test functions
 void test_insert( TestObjs *objs );
 void test_insert_many( TestObjs *objs );
+void test_remove_one( TestObjs *objs );
 
 ////////////////////////////////////////////////////////////////////////
 // Test program
@@ -92,6 +93,7 @@ int main( int argc, char **argv ) {
 
   TEST( test_insert );
   TEST( test_insert_many );
+  TEST( test_remove_one );
 
   TEST_FINI();
 }
@@ -141,4 +143,13 @@ void test_insert_many( TestObjs *objs ) {
 
   for ( auto i = vals.begin(); i != vals.end(); ++i )
     ASSERT( itree.contains( IntAATreeNode( *i ) ) );
+}
+
+void test_remove_one( TestObjs *objs ) {
+  auto &itree = objs->itree;
+  
+  itree.insert( new IntAATreeNode( 42 ) );
+  ASSERT( itree.contains( IntAATreeNode( 42 ) ) );
+  bool removed = itree.remove( IntAATreeNode( 42 ) );
+  ASSERT( removed );
 }
