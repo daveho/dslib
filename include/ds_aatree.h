@@ -5,6 +5,8 @@
 
 namespace dslib {
 
+class AATreeImpl;
+
 //! Intrusive AA tree node base class.
 class AATreeNode {
 private:
@@ -17,22 +19,16 @@ public:
   AATreeNode() : m_left( nullptr ), m_right( nullptr ), m_level( 1 ) { }
   ~AATreeNode() { }
 
+  friend class AATreeImpl;
+
   AATreeNode *get_left() const { return m_left; }
-  void set_left( AATreeNode *left ) { m_left = left; }
-
   AATreeNode *get_right() const { return m_right; }
-  void set_right( AATreeNode *right ) { m_right = right; }
-
   int get_level() const { return m_level; }
+
+private:
+  void set_left( AATreeNode *left ) { m_left = left; }
+  void set_right( AATreeNode *right ) { m_right = right; }
   void set_level( int level ) { m_level = level; }
-
-  // Get effective level of left child.
-  // This should only be called by AATreeImpl, where it's used
-  // in the implementation of the remove() member function.
-  int get_left_level() const { return m_left != nullptr ? m_left->get_level() : m_level; }
-
-  // As above.
-  int get_right_level() const { return m_right != nullptr ? m_right->get_level() : m_level; }
 
   // Get pointer to this node's left pointer.
   // Only AATreeImpl should  call this function.

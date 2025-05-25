@@ -242,6 +242,24 @@ void AATreeImpl::adjust_level( AATreeNode *t ) {
   //   p's children is two levels below p, decrease the level of
   //   p by 1. If p's right child belonged to the same
   //   pseudo-node as p, we decrease the level of that node too."
+
+  DS_ASSERT( t->get_left() != nullptr );
+  DS_ASSERT( t->get_right() != nullptr );
+
+  AATreeNode *left = t->get_left(), *right = t->get_right();
+
+  int t_level = t->get_level(),
+      l_level = left->get_level(),
+      r_level = right->get_level();
+  
+  bool r_at_same_level = ( t_level == r_level );
+
+  if ( l_level == t_level-2 || r_level == t_level-2 ) {
+    t->set_level( t_level - 1 );
+    if ( r_at_same_level )
+      right->set_level( t_level - 1 );
+  }
+#if 0
   int t_level = t->get_level(),
      l_level = t->get_left_level(),
      r_level = t->get_right_level();
@@ -254,6 +272,7 @@ void AATreeImpl::adjust_level( AATreeNode *t ) {
     if ( has_right_child_at_same_level )
       t->get_right()->set_level( t_level - 1 );
   }
+#endif
 }
 
 #ifdef DSLIB_CHECK_INTEGRITY
