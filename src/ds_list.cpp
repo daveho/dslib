@@ -3,108 +3,68 @@
 namespace dslib {
 
 ListImpl::ListImpl( FreeNodeFn *free_node_fn )
-  : m_free_node_fn( free_node_fn )
-  , m_head( nullptr )
-  , m_tail( nullptr ) { }
+  : m_free_node_fn( free_node_fn ) {
+  DS_ASSERT( m_head.get_prev() == nullptr );
+  DS_ASSERT( m_tail.get_next() == nullptr );
+
+  m_head.set_next( &m_tail );
+  m_tail.set_prev( &m_head );
+}
 
 ListImpl::~ListImpl() {
-  for ( auto p = m_head; p != nullptr; ) {
-    auto next = p->get_next();
+  for ( auto p = get_first(); p != nullptr; ) {
+    auto succ = next( p );
     m_free_node_fn( p );
-    p = next;
+    p = succ;
   }
 }
 
 bool ListImpl::is_empty() const {
-  return m_head == nullptr;
+  return m_head.get_next() == &m_tail;
 }
 
 ListNode *ListImpl::get_first() const {
-  DS_ASSERT( !is_empty() );
-  return m_head;
+  return is_empty() ? nullptr : m_head.get_next();
 }
 
 ListNode *ListImpl::get_last() const {
-  DS_ASSERT( !is_empty() );
-  return m_tail;
+  return is_empty() ? nullptr : m_tail.get_prev();
 }
 
 void ListImpl::append( ListNode *node ) {
-  if ( is_empty() )
-    add_initial_node( node );
-  else {
-    DS_ASSERT( m_tail != nullptr );
-    m_tail->set_next( node );
-    node->set_prev( m_tail );
-    node->set_next( nullptr );
-    m_tail = node;
-  }
+  DS_ASSERT( m_tail.get_prev() != nullptr );
+  node->set_prev( m_tail.get_prev() );
+  node->set_next( &m_tail );
+  m_tail.get_prev()->set_next( node );
+  m_tail.set_prev( node );
 }
 
 void ListImpl::prepend( ListNode *node ) {
-  if ( is_empty() )
-    add_initial_node( node );
-  else {
-    m_head->set_prev( node );
-    node->set_next( m_head );
-    node->set_prev( nullptr );
-    m_head = node;
-  }
+  DS_ASSERT( m_head.get_next() != nullptr );
+  node->set_prev( &m_head );
+  node->set_next( m_head.get_next() );
+  m_head.get_next()->set_prev( node );
+  m_head.set_next( node );
 }
 
 void ListImpl::insert_before( ListNode *node_to_insert, ListNode *existing ) {
-  if ( existing == m_head ) {
-    DS_ASSERT( existing->get_prev() == nullptr );
-    prepend( node_to_insert );
-  } else {
-    DS_ASSERT( existing->get_prev() != nullptr );
-    ListNode *prev = existing->get_prev();
-    prev->set_next( node_to_insert );
-    node_to_insert->set_prev( prev );
-    node_to_insert->set_next( existing );
-    existing->set_prev( node_to_insert );
-  }
+  node_to_insert->set_prev( existing->get_prev() );
+  node_to_insert->set_next( existing );
+  existing->get_prev()->set_next( node_to_insert );
+  existing->set_prev( node_to_insert );
 }
 
 void ListImpl::insert_after( ListNode *node_to_insert, ListNode *existing ) {
-  if ( existing == m_tail ) {
-    DS_ASSERT( existing->get_next() == nullptr );
-    append( node_to_insert );
-  } else {
-    DS_ASSERT( existing->get_next() != nullptr );
-    ListNode *next = existing->get_next();
-    existing->set_next( node_to_insert );
-    node_to_insert->set_prev( existing );
-    node_to_insert->set_next( next );
-    next->set_prev( node_to_insert );
-  }
+  node_to_insert->set_prev( existing );
+  node_to_insert->set_next( existing->get_next() );
+  existing->get_next()->set_prev( node_to_insert );
+  existing->set_next( node_to_insert );
 }
 
 void ListImpl::remove( ListNode *node_to_remove ) {
-  if ( node_to_remove == m_head ) {
-    DS_ASSERT( node_to_remove->get_prev() == nullptr );
-    m_head = m_head->get_next();
-    if ( m_head == nullptr )
-      m_tail = nullptr; // list becaome empty
-    else
-      m_head->set_prev( nullptr ); // new list head has no predecessor now
-  } else if ( node_to_remove == m_tail ) {
-    DS_ASSERT( node_to_remove->get_next() == nullptr );
-    m_tail = m_tail->get_prev();
-    if ( m_tail == nullptr )
-      m_head = nullptr; // list became empty
-    else
-      m_tail->set_next( nullptr ); // new list tail has no successor now
-  } else {
-    // General case: node being removed has both a predecessor
-    // and a successor
-    ListNode *prev = node_to_remove->get_prev();
-    ListNode *next = node_to_remove->get_next();
-
-    // splice removed node out of the list
-    prev->set_next( next );
-    next->set_prev( prev );
-  }
+  auto pred = node_to_remove->get_prev(), succ = node_to_remove->get_next();
+  pred->set_next( succ );
+  succ->set_prev( pred );
 
   // For robustness, clear removed node's next and prev fields
   node_to_remove->set_prev( nullptr );
@@ -113,16 +73,19 @@ void ListImpl::remove( ListNode *node_to_remove ) {
 
 unsigned ListImpl::get_size() const {
   unsigned count = 0;
-  for ( auto p = m_head; p != nullptr; p = p->get_next() )
+  for ( auto p = get_first(); p != nullptr; p = next( p ) )
     ++count;
   return count;
 }
 
-void ListImpl::add_initial_node( ListNode *node ) {
-  DS_ASSERT( is_empty() );
-  m_head = m_tail = node;
-  node->set_next( nullptr );
-  node->set_prev( nullptr );
+ListNode *ListImpl::next( ListNode *node ) const {
+  auto succ = node->get_next();
+  return ( succ == &m_tail ) ? nullptr : succ;
+}
+
+ListNode *ListImpl::prev( ListNode *node ) const {
+  auto pred = node->get_prev();
+  return ( pred == &m_head ) ? nullptr : pred;
 }
 
 } // end namespace dslib

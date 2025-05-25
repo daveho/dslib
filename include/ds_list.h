@@ -5,6 +5,8 @@
 
 namespace dslib {
 
+class ListImpl;
+
 //! Intrusive list node base class.
 class ListNode {
 private:
@@ -16,12 +18,12 @@ public:
   //! Constructor.
   ListNode() : m_prev( nullptr ), m_next( nullptr ) { }
 
-  //! Constructor from specified next and prev node pointers
-  ListNode( ListNode *next, ListNode *prev )
-    : m_prev( prev )
-    , m_next( next ) { }
+  //! Destructor.
   ~ListNode() {}
 
+  friend class ListImpl;
+
+private:
   //! @return pointer to previous node (nullptr if there is no previous node)
   ListNode *get_prev() const { return m_prev; }
 
@@ -47,7 +49,10 @@ public:
 
 private:
   FreeNodeFn *m_free_node_fn;
-  ListNode *m_head, *m_tail;
+  //ListNode *m_head, *m_tail;
+  // Fake head and tail nodes: same trick as lists in Pintos,
+  // this eliminates special cases in insertions and deletions
+  ListNode m_head, m_tail;
 
   NO_VALUE_SEMANTICS( ListImpl );
 
@@ -65,8 +70,8 @@ public:
   void remove( ListNode *node_to_remove );
   unsigned get_size() const;
 
-private:
-  void add_initial_node( ListNode *node );
+  ListNode *next( ListNode *node ) const;
+  ListNode *prev( ListNode *node ) const;
 };
 
 //! List class, storing a sequence of nodes.
@@ -88,14 +93,14 @@ public:
   //! @return the next list node, or nullptr if the given list
   //!         node is the tail of the list
   ActualNodeType *next( ActualNodeType *node ) const {
-    return static_cast< ActualNodeType* >( node->get_next() );
+    return static_cast< ActualNodeType* >( m_impl.next( node ) );
   }
 
   //! Get the list node that follows the given one.
   //! @return the previous list node, or nullptr if the given list
   //!         node is the head of the list
   ActualNodeType *prev( ActualNodeType *node ) const {
-    return static_cast< ActualNodeType *>( node->get_prev() );
+    return static_cast< ActualNodeType *>( m_impl.prev( node ) );
   }
 
   //! @return true if list is empty, false if not
