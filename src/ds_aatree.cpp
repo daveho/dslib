@@ -216,6 +216,9 @@ AATreeNode *AATreeImpl::split( AATreeNode *t ) {
 }
 
 void AATreeImpl::adjust_level( AATreeNode *t ) {
+  if ( t == nullptr )
+    return;
+
   // From Andersson's paper (p.3, "Deletion"):
   //   "If a pseudo-node is missing below p, i.e. if one of
   //   p's children is two levels below p, decrease the level of
