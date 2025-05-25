@@ -1,5 +1,5 @@
 CXX = g++
-CXXFLAGS = -g -Wall -Iinclude
+CXXFLAGS = -g -Wall -Iinclude -DDSLIB_CHECK_INTEGRITY
 
 SRCS = ds_list.cpp ds_aatree.cpp
 OBJS = $(SRCS:%.cpp=build/%.o)

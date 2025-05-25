@@ -59,7 +59,7 @@ public:
   //! is deleted: we find an easy-to-remove node to be a "victim",
   //! copy the contents of the victim into the "deleted" node, and
   //! then remove the victim.
-  typedef void NodeCopyFn( AATreeNode *from, AATreeNode *to );
+  typedef void CopyNodeFn( AATreeNode *from, AATreeNode *to );
 
   //! Node free function type
   typedef void FreeNodeFn( AATreeNode *node );
@@ -67,7 +67,7 @@ public:
 private:
   AATreeNode *m_root;
   LessThanFn *m_less_than_fn;
-  NodeCopyFn *m_node_copy_fn;
+  CopyNodeFn *m_copy_node_fn;
   FreeNodeFn *m_free_node_fn;
 
   NO_VALUE_SEMANTICS( AATreeImpl );
@@ -78,13 +78,25 @@ private:
   static constexpr const int MAX_HEIGHT = 32;
 
 public:
-  AATreeImpl( LessThanFn *less_than_fn, NodeCopyFn *node_copy_fn, FreeNodeFn *free_node_fn );
+  AATreeImpl( LessThanFn *less_than_fn, CopyNodeFn *copy_node_fn, FreeNodeFn *free_node_fn );
   ~AATreeImpl();
 
   bool insert( AATreeNode *node );
   AATreeNode *find( const AATreeNode &node ) const;
   bool contains( const AATreeNode &node ) const;
   bool remove( const AATreeNode &node );
+
+#ifdef DSLIB_CHECK_INTEGRITY
+  // Does AA-tree rooted at given node satisfy the AA-tree properties?
+  static bool is_valid( AATreeNode *node, int expected_level );
+
+  // Does the overall AA-tree satisfy the AA-tree properties?
+  bool is_valid() const {
+    if ( m_root == nullptr )
+      return true;
+    return is_valid( m_root, m_root->get_level() );
+  }
+#endif
 
 private:
   static AATreeNode *skew( AATreeNode *t );
@@ -105,9 +117,11 @@ public:
   //! Constructor.
   //! @param less_than_fn function to compare two tree nodes to determine
   //!                     whether the left node is less than the right node
+  //! @param copy_node_fn function to copy the contents of a node to a different
+  //!                     node (necessary when removing an interior node)
   //! @param free_node_fn function to delete a tree node
-  AATree( AATreeImpl::LessThanFn *less_than_fn, AATreeImpl *node_copy_fn, AATreeImpl::FreeNodeFn *free_node_fn )
-    : m_impl( less_than_fn, node_copy_fn, free_node_fn )
+  AATree( AATreeImpl::LessThanFn *less_than_fn, AATreeImpl::CopyNodeFn *copy_node_fn, AATreeImpl::FreeNodeFn *free_node_fn )
+    : m_impl( less_than_fn, copy_node_fn, free_node_fn )
   { }
 
   //! Destructor.
@@ -147,6 +161,12 @@ public:
   bool remove( const ActualNodeType &node ) {
     return m_impl.remove( node );
   }
+
+#ifdef DSLIB_CHECK_INTEGRITY
+  bool is_valid() const {
+    return m_impl.is_valid();
+  }
+#endif
 };
 
 } // end namespace dslib

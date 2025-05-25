@@ -24,11 +24,19 @@ public:
   int get_val() const { return m_val; }
 
   static void free_node_fn( dslib::AATreeNode *node );
+  static void copy_node_fn( dslib::AATreeNode *from, dslib::AATreeNode *to );
   static bool less_than_fn( const dslib::AATreeNode *left, const dslib::AATreeNode *right );
 };
 
 void IntAATreeNode::free_node_fn( dslib::AATreeNode *node ) {
   delete static_cast< IntAATreeNode* >( node );
+}
+
+void IntAATreeNode::copy_node_fn( dslib::AATreeNode *from_, dslib::AATreeNode *to_ ) {
+  IntAATreeNode *from = static_cast< IntAATreeNode* >( from_ );
+  IntAATreeNode *to = static_cast< IntAATreeNode* >( to_ );
+
+  to->set_val( from->get_val() );
 }
 
 bool IntAATreeNode::less_than_fn( const dslib::AATreeNode *left_, const dslib::AATreeNode *right_ ) {
@@ -56,7 +64,7 @@ struct TestObjs {
   dslib::AATree< IntAATreeNode > itree;
 
   TestObjs()
-    : itree( &IntAATreeNode::less_than_fn, &IntAATreeNode::free_node_fn )
+    : itree( &IntAATreeNode::less_than_fn, &IntAATreeNode::copy_node_fn, &IntAATreeNode::free_node_fn )
   { }
 };
 
@@ -102,8 +110,10 @@ void test_insert( TestObjs *objs ) {
   auto &itree = objs->itree;
 
   const std::vector< int > VALS = { 16, 53, 3, 98, 79, 80, 17, 11, 42, 86 };
-  for ( auto i = VALS.begin(); i != VALS.end(); ++i )
+  for ( auto i = VALS.begin(); i != VALS.end(); ++i ) {
     itree.insert( new IntAATreeNode( *i ) );
+    ASSERT( itree.is_valid() );
+  }
   
   for ( int i = 0; i < 100; ++i ) {
     if ( std::find( VALS.begin(), VALS.end(), i ) != VALS.end() )

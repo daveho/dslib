@@ -2,10 +2,10 @@
 
 namespace dslib {
 
-AATreeImpl::AATreeImpl( LessThanFn *less_than_fn, NodeCopyFn *node_copy_fn, FreeNodeFn *free_node_fn )
+AATreeImpl::AATreeImpl( LessThanFn *less_than_fn, CopyNodeFn *copy_node_fn, FreeNodeFn *free_node_fn )
   : m_root( nullptr )
   , m_less_than_fn( less_than_fn )
-  , m_node_copy_fn( node_copy_fn )
+  , m_copy_node_fn( copy_node_fn )
   , m_free_node_fn( free_node_fn ) {
 }
 
@@ -134,7 +134,7 @@ bool AATreeImpl::remove( const AATreeNode &node ) {
     AATreeNode *victim = *link;
 
     // Copy the contents of the victim to the deleted node
-    m_node_copy_fn( victim, t );
+    m_copy_node_fn( victim, t );
 
     // The subtree rooted by the victim node is replaced by the
     // victim node's right subtree.
@@ -234,5 +234,40 @@ void AATreeImpl::adjust_level( AATreeNode *t ) {
       t->get_right()->set_level( t_level - 1 );
   }
 }
+
+#ifdef DSLIB_CHECK_INTEGRITY
+bool AATreeImpl::is_valid( AATreeNode *node, int expected_level ) {
+  AATreeNode *left = node->get_left(), *right = node->get_right();
+
+  // True leaf nodes must be at level 1
+  if ( left == nullptr && right == nullptr )
+    return node->get_level() == 1;
+
+  // If there is a left child, it must be at the next lower level
+  if ( left != nullptr )
+    if ( !is_valid( left, expected_level - 1 ) )
+      return false;
+
+  if ( right == nullptr )
+    return true; // no right subtree
+
+  // Right child could be a level below the parent
+  if ( right->get_level() == expected_level - 1 )
+    return is_valid( right, expected_level - 1 );
+  else {
+    // Right node should be at same level as parent
+    // (i.e., part of the same pseudo-node)
+    if ( right->get_level() != expected_level )
+      return false;
+
+    // If the right child has a right child, it must be one level below
+    if ( right->get_right() != nullptr )
+      if ( right->get_right()->get_level() != expected_level - 1 )
+        return false;
+
+    return is_valid( right, expected_level );
+  }
+}
+#endif
 
 } // namespace dslib
