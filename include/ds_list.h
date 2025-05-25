@@ -49,7 +49,6 @@ public:
 
 private:
   FreeNodeFn *m_free_node_fn;
-  //ListNode *m_head, *m_tail;
   // Fake head and tail nodes: same trick as lists in Pintos,
   // this eliminates special cases in insertions and deletions
   ListNode m_head, m_tail;
