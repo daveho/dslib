@@ -81,12 +81,17 @@ bool AATreeImpl::remove( const AATreeNode &node ) {
     path[ path_len ] = link;
     ++path_len;
 
-    if ( m_less_than_fn( *link, &node ) )
-      link = (*link)->get_ptr_to_left(); // continue in left subtree
-    else if ( !m_less_than_fn( &node, *link ) )
-      break; // *link is pointing to a matching node
+    if ( m_less_than_fn( &node, *link ) )
+      // Node we're searching for is less than *link,
+      // so continue in the left subtree
+      link = (*link)->get_ptr_to_left();
+    else if ( !m_less_than_fn( *link, &node ) )
+       // *link is pointing to a matching node
+      break;
     else
-      link = (*link)->get_ptr_to_right(); // continue in right subtree
+      // Node we're searching for is greater than the
+      // current node, so continue in right subtree 
+      link = (*link)->get_ptr_to_right();
   }
 
   if ( *link == nullptr )

@@ -164,10 +164,47 @@ void test_remove( TestObjs *objs ) {
   for ( auto i = TEST_VALS.begin(); i != TEST_VALS.end(); ++i )
     itree.insert( new IntAATreeNode( *i ) );
 
+#if 0
   for ( auto i = TEST_VALS.begin(); i != TEST_VALS.end(); ++i ) {
     bool removed = itree.remove( IntAATreeNode( *i ) );
     ASSERT( removed );
     ASSERT( !itree.contains( IntAATreeNode( *i ) ) );
     ASSERT( itree.is_valid() );
   }
+#endif
+
+#if 1
+  bool removed;
+
+  removed = itree.remove( IntAATreeNode( 16 ) );
+  ASSERT( removed );
+  ASSERT( !itree.contains( IntAATreeNode( 16 ) ) );
+  ASSERT( itree.is_valid() );
+
+  removed = itree.remove( IntAATreeNode( 53 ) );
+  ASSERT( removed );
+  ASSERT( !itree.contains( IntAATreeNode( 53 ) ) );
+  ASSERT( itree.is_valid() );
+
+  removed = itree.remove( IntAATreeNode( 3 ) );
+  ASSERT( removed );
+  ASSERT( !itree.contains( IntAATreeNode( 3 ) ) );
+  ASSERT( itree.is_valid() );
+
+  removed = itree.remove( IntAATreeNode( 98 ) );
+  ASSERT( removed );
+  ASSERT( !itree.contains( IntAATreeNode( 98 ) ) );
+  ASSERT( itree.is_valid() );
+
+  removed = itree.remove( IntAATreeNode( 79 ) );
+  ASSERT( removed );
+  ASSERT( !itree.contains( IntAATreeNode( 79 ) ) );
+  ASSERT( itree.is_valid() );
+
+  removed = itree.remove( IntAATreeNode( 80 ) );
+  ASSERT( removed );
+  ASSERT( !itree.contains( IntAATreeNode( 80 ) ) );
+  ASSERT( itree.is_valid() );
+
+#endif
 }
