@@ -6,7 +6,7 @@
                 "${workspaceFolder}/**",
                 "${workspaceFolder}/include"
             ],
-            "defines": [],
+            "defines": ["DSLIB_CHECK_INTEGRITY"],
             "compilerPath": "/usr/bin/gcc",
             "cStandard": "c17",
             "cppStandard": "gnu++17",
