@@ -136,7 +136,7 @@ bool AATreeImpl::remove( const AATreeNode &node ) {
     ++path_len;
 
     // Find the leftmost node in the subtree
-    while ( (*link)->get_left() != nullptr ) {
+    while ( (*link)->get_left() != &m_nil ) {
       DS_ASSERT( path_len < MAX_HEIGHT );
       path[ path_len ] = link;
       ++path_len;
