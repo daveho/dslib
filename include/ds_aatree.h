@@ -111,6 +111,36 @@ public:
   AATreeNode *next();
 
   friend class AATreeImpl;
+
+private:
+  void init( const AATreeImpl *tree );
+};
+
+// Postfix traversal implementation
+class AATreePostfixIterImpl {
+private:
+  AATreePtrStack< AATreeNode* > m_stack;
+  const AATreeImpl *m_tree;
+
+  // Note that this class DOES have value semantics
+
+public:
+  AATreePostfixIterImpl();
+  ~AATreePostfixIterImpl();
+
+  bool has_next() const;
+  AATreeNode *next();
+
+  friend class AATreeImpl;
+
+private:
+  void init( const AATreeImpl *tree );
+
+  static AATreeNode *clean_ptr( AATreeNode *node );
+  bool is_left_visited( AATreeNode *node );
+  bool is_right_visited( AATreeNode *node );
+  static AATreeNode *mark_left_visited( AATreeNode *node );
+  static AATreeNode *mark_right_visited( AATreeNode *node );
 };
 
 //! AA tree implementation.
@@ -153,6 +183,7 @@ public:
   const AATreeNode *nil() const { return &m_nil; }
 
   AATreeIterImpl iterator() const;
+  AATreePostfixIterImpl postfix_iterator() const;
 
 #ifdef DSLIB_CHECK_INTEGRITY
   // Does AA-tree rooted at given node satisfy the AA-tree properties?
@@ -175,7 +206,8 @@ private:
   void adjust_level( AATreeNode *t );
 };
 
-//! Iterator over nodes in an AATree.
+//! In-order iterator over nodes in an AATree.
+//! @tparam ActualNodeType the actual tree node type
 template< typename ActualNodeType >
 class AATreeIter {
 private:
@@ -200,8 +232,43 @@ public:
     return m_impl.has_next();
   }
 
-  //! Get the next node, and advance to the node that follows.
-  //! Don't call this unless has_next() has returned true.
+  //! Get the next node, and advance to the node that follows
+  //! in order. Don't call this unless has_next() has returned true.
+  //! @return the next node in the sequenbce
+  ActualNodeType *next() {
+    return static_cast< ActualNodeType* >( m_impl.next() );
+  }
+};
+
+//! Postfix iterator over the nodes in an AATree.
+//! @tparam ActualNodeType the actual tree node type
+template< typename ActualNodeType >
+class AATreePostfixIter {
+private:
+  AATreePostfixIterImpl m_impl;
+
+public:
+  //! Constructor. This shouldn't be used directly:
+  //! instead, call AATree::postfix_iterator().
+  //! @param impl the underlying AATreePostfixIterImpl positioned at the
+  //!             first node in postfix order
+  AATreePostfixIter( const AATreeIterImpl &impl )
+    : m_impl( impl ) {
+
+  }
+
+  //! Destructor.
+  ~AATreePostfixIter() { }
+
+  //! @return true if the iterator can return at least one more node,
+  //!         false if there are no more nodes to return
+  bool has_next() const {
+    return m_impl.has_next();
+  }
+
+  //! Get the next node, and advance to the node that follows
+  //! in postfix order. Don't call this unless has_next() has
+  //! returned true.
   //! @return the next node in the sequenbce
   ActualNodeType *next() {
     return static_cast< ActualNodeType* >( m_impl.next() );
@@ -270,6 +337,12 @@ public:
   //! @return an iterator positioned at the first (overall least) node
   AATreeIter< ActualNodeType > iterator() const {
     return AATreeIter< ActualNodeType >( m_impl.iterator() );
+  }
+
+  //! Get a postfix iterator positioned at the first node in postfix order.
+  //! @return a postfix iterator positioned at the first node in postfix order
+  AATreePostfixIter< ActualNodeType > postfix_iterator() const {
+    return AATreePostfixIter< ActualNodeType >( m_impl.postfix_iterator() );
   }
 
 #ifdef DSLIB_CHECK_INTEGRITY

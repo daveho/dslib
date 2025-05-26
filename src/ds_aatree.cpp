@@ -1,3 +1,4 @@
+#include <cstdint>
 #include "ds_aatree.h"
 
 namespace dslib {
@@ -168,15 +169,13 @@ bool AATreeImpl::remove( const AATreeNode &node ) {
 
 AATreeIterImpl AATreeImpl::iterator() const {
   AATreeIterImpl it;
-  it.m_tree = this;
+  it.init( this );
+  return it;
+}
 
-  // First node to return is the leftmost node in the tree
-  AATreeNode *n = m_root;
-  while ( n != &m_nil ) {
-    it.m_stack.push( n );
-    n = n->get_left();
-  }
-
+AATreePostfixIterImpl AATreeImpl::postfix_iterator() const {
+  AATreePostfixIterImpl it;
+  it.init( this );
   return it;
 }
 
@@ -420,6 +419,150 @@ AATreeNode *AATreeIterImpl::next() {
   }
 
   return node;
+}
+
+void AATreeIterImpl::init( const AATreeImpl *tree ) {
+  m_tree = tree;
+
+  // Start with the left-most node in the tree
+  AATreeNode *n = m_tree->get_root();
+  while ( n != m_tree->nil() ) {
+    m_stack.push( n );
+    n = n->get_left();
+  }
+}
+
+////////////////////////////////////////////////////////////////////////
+// AATreePostfixIterImpl implementation
+////////////////////////////////////////////////////////////////////////
+
+// We use the two least-significant bits of node pointers to keep
+// track of whether the left subtree has been visited yet.
+
+constexpr const uintptr_t LEFT_VISITED = 0x1;
+constexpr const uintptr_t RIGHT_VISITED = 0x2;
+
+// Mask to get the "clean" pointer
+constexpr const uintptr_t CLEAN_PTR_MASK = ~( LEFT_VISITED|RIGHT_VISITED );
+
+AATreePostfixIterImpl::AATreePostfixIterImpl()
+  : m_tree( nullptr ) {
+  // As with AATreeIterImpl, the AATreeImpl object will set up the
+  // initial stack
+}
+
+AATreePostfixIterImpl::~AATreePostfixIterImpl() {
+
+}
+
+bool AATreePostfixIterImpl::has_next() const {
+  DS_ASSERT( m_tree != nullptr );
+  return !m_stack.is_empty();
+}
+
+AATreeNode *AATreePostfixIterImpl::next() {
+  DS_ASSERT( has_next() );
+  AATreeNode *cur = m_stack.pop();
+
+  // The current node should not have any unvisited descendants
+  DS_ASSERT( is_left_visited( cur ) );
+  DS_ASSERT( is_right_visited( cur ) );
+
+  // It's now safe to "clean" the pointer to the current node
+  cur = clean_ptr( cur );
+
+  // If the stack is not empty, then there are more nodes to visit
+  if ( !m_stack.is_empty() ) {
+    // Find the next node to visit
+
+    // Go up to the parent, marking the completion of the visitation
+    // of its left or right subtree, as appropriate
+    AATreeNode *parent = m_stack.pop();
+    if ( cur == clean_ptr( parent )->get_left() )
+      m_stack.push( mark_left_visited( parent ) );
+    else {
+      DS_ASSERT( cur == clean_ptr( parent )->get_right() );
+      m_stack.push( mark_right_visited( parent ) );
+    }
+
+    parent = m_stack.top();
+
+    // It MUST be the case that the left subtree has been completely
+    // visited, otherwise we would not have returned to the parent yet,
+    // since the entire left subtree is always visited before the entire
+    // right subtree.
+    DS_ASSERT( is_left_visited( parent ) );
+
+    // Check whether the parent's right subtree has been visited yet.
+    // If so, great, the parent is the next node to be visited in the
+    // postfix traversal. If the right subtree has NOT been visited
+    // yet, find the next leaf to visit in the right subtree.
+
+    if ( !is_right_visited( parent ) ) {
+      AATreeNode *n = clean_ptr( parent )->get_right();
+      DS_ASSERT( n != m_tree->nil() );
+      while ( n != m_tree->nil() ) {
+        m_stack.push( n );
+        AATreeNode *left = n->get_left();
+        n = ( left != m_tree->nil() ) ? left : n->get_right();
+      }
+    }
+  }
+
+  return cur;
+}
+
+void AATreePostfixIterImpl::init( const AATreeImpl *tree ) {
+  m_tree = tree;
+
+  // Start with the leftmost leaf, meaning that we traverse
+  // to a leaf from the root PREFERRING left links, but taking
+  // right links if they are the only option
+  AATreeNode* n = m_tree->get_root();
+  while ( n != m_tree->nil() ) {
+    m_stack.push( n );
+    AATreeNode *left = n->get_left();
+    n = ( left != m_tree->nil() ) ? left : n->get_right();
+  }
+  DS_ASSERT( n->get_left() == m_tree->nil() );
+  DS_ASSERT( n->get_right() == m_tree->nil() );
+}
+
+AATreeNode *AATreePostfixIterImpl::clean_ptr( AATreeNode *node ) {
+  uintptr_t ptr_val = reinterpret_cast< uintptr_t >( node );
+  return reinterpret_cast< AATreeNode* >( ptr_val & CLEAN_PTR_MASK );
+}
+
+bool AATreePostfixIterImpl::is_left_visited( AATreeNode *node ) {
+  // If there is no left child, then trivially it has already
+  // been visited
+  if ( clean_ptr( node )->get_left() == m_tree->nil() )
+    return true;
+
+  // Check whether the LEFT_VISITED bit is set
+  uintptr_t ptr_val = reinterpret_cast< uintptr_t >( node );
+  return ( ptr_val & LEFT_VISITED ) != 0;
+}
+
+bool AATreePostfixIterImpl::is_right_visited( AATreeNode *node ) {
+  // If there is no right child, then trivially it has already
+  // been visitde
+  if ( clean_ptr( node )->get_right() == m_tree->nil() )
+    return true;
+
+  // Check whether the RIGHT_VISITED bit is set
+  uintptr_t ptr_val = reinterpret_cast< uintptr_t >( node );
+  return ( ptr_val & RIGHT_VISITED ) != 0;
+}
+
+AATreeNode *AATreePostfixIterImpl::mark_left_visited( AATreeNode *node ) {
+  uintptr_t ptr_val = reinterpret_cast< uintptr_t >( node );
+  return reinterpret_cast< AATreeNode* >( ptr_val | LEFT_VISITED );
+}
+
+AATreeNode *AATreePostfixIterImpl::mark_right_visited( AATreeNode *node ) {
+  uintptr_t ptr_val = reinterpret_cast< uintptr_t >( node );
+  return reinterpret_cast< AATreeNode* >( ptr_val | RIGHT_VISITED );
 }
 
 } // namespace dslib
