@@ -43,7 +43,6 @@ void IntAATreeNode::copy_node_fn( dslib::AATreeNode *from_, dslib::AATreeNode *t
 }
 
 bool IntAATreeNode::less_than_fn( const dslib::AATreeNode *left_, const dslib::AATreeNode *right_ ) {
-  //return left->m_val < right->m_val;  
   const IntAATreeNode *left = static_cast< const IntAATreeNode* >( left_ );
   const IntAATreeNode *right = static_cast< const IntAATreeNode* >( right_ );
   return left->m_val < right->m_val;
@@ -78,12 +77,17 @@ std::string IntAATreePrint::node_contents_to_str( dslib::AATreeNode *t_ ) const 
 // Turn dslib assertions into tctest test failures
 ////////////////////////////////////////////////////////////////////////
 
-void ds_assert_fail( const char *msg, const char *filename, int line ) {
+namespace dslib {
+
+void assert_fail( const char *msg, const char *filename, int line ) {
   std::stringstream ss;
   ss << filename << ":" << line << ": " << msg;
   FAIL( ss.str().c_str() ); // uses siglongjmp to "throw" to tctest failure handling code
   for (;;);
 }
+
+} // end namespace dslib
+
 ////////////////////////////////////////////////////////////////////////
 // Test fixture
 ////////////////////////////////////////////////////////////////////////

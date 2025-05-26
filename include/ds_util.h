@@ -29,12 +29,16 @@
   Type &operator=( const Type & ) = delete
 
 #ifndef NDEBUG
+namespace dslib {
+
 // The project using dslib should define this function
-void ds_assert_fail( const char *msg, const char *filename, int line ) __attribute__ ((noreturn));
+void assert_fail( const char *msg, const char *filename, int line ) __attribute__ ((noreturn));
+
+}
 
 #define DS_ASSERT( expr ) \
 if ( !(expr) ) \
-  ds_assert_fail( "Assertion failed: " #expr, __FILE__, __LINE__ )
+  dslib::assert_fail( "Assertion failed: " #expr, __FILE__, __LINE__ )
 #else
 #define DS_ASSERT( expr )
 #endif

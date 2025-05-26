@@ -54,12 +54,16 @@ void check_list_contents( const std::vector<int> &expected, const dslib::List< I
 // Turn dslib assertions into tctest test failures
 ////////////////////////////////////////////////////////////////////////
 
-void ds_assert_fail( const char *msg, const char *filename, int line ) {
+namespace dslib {
+
+void assert_fail( const char *msg, const char *filename, int line ) {
   std::stringstream ss;
   ss << filename << ":" << line << ": " << msg;
   FAIL( ss.str().c_str() ); // uses siglongjmp to "throw" to tctest failure handling code
   for (;;);
 }
+
+} // end namespace dslib
 
 ////////////////////////////////////////////////////////////////////////
 // Test fixture
