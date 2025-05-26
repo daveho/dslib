@@ -81,6 +81,8 @@ public:
   bool contains( const AATreeNode &node ) const;
   bool remove( const AATreeNode &node );
 
+  const AATreeNode *nil() const { return &m_nil; }
+
 #ifdef DSLIB_CHECK_INTEGRITY
   // Does AA-tree rooted at given node satisfy the AA-tree properties?
   bool is_valid( AATreeNode *node, int expected_level ) const;
@@ -149,6 +151,23 @@ public:
   //! Pop a pointer off the top of the stack, which must be non-empty.
   //! @return the pointer popped from the top of the stack
   PtrType pop() { return static_cast< PtrType >( m_impl.pop() ); }
+};
+
+class AATreeIterImpl {
+private:
+  AATreePtrStack< AATreeNode* > m_stack;
+  AATreeImpl *m_tree;
+  
+  // Note that this class DOES have value semantics
+
+public:
+  AATreeIterImpl();
+  ~AATreeIterImpl();
+
+  bool has_next() const;
+  AATreeNode *next();
+
+  friend class AATreeImpl;
 };
 
 //! Balanced binary search tree class.

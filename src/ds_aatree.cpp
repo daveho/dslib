@@ -324,4 +324,88 @@ void *AATreePtrStackImpl::pop() {
   return m_stack[ m_num_items ];
 }
 
+////////////////////////////////////////////////////////////////////////
+// AATreeIterImpl implementation
+////////////////////////////////////////////////////////////////////////
+
+AATreeIterImpl::AATreeIterImpl()
+  : m_tree( nullptr ) {
+  // Note that AATreeImpl is a friend class, and has
+  // responsibility for initializing the stack and the
+  // m_tree pointer
+}
+
+AATreeIterImpl::~AATreeIterImpl() {
+
+}
+
+bool AATreeIterImpl::has_next() const {
+  DS_ASSERT( m_tree != nullptr );
+  return !m_stack.is_empty();
+}
+
+AATreeNode *AATreeIterImpl::next() {
+  DS_ASSERT( has_next() );
+
+  // Get the current node (the one to return)
+  AATreeNode *node = m_stack.top();
+
+  // Advance to the next node (if there is one.)
+  // Cases:
+  //
+  // 1. If there is a right child, the leftmost child in the right
+  //    subtree is next
+  // 2. If the current node is a left child of its parent, the
+  //    parent is next
+  // 3. Otherwise, go up, traversing all right child links.
+  //    The first node reachable via a left child link is next.
+
+  if ( node->get_right() != m_tree->nil() ) {
+    // Case 1
+    AATreeNode *next = node->get_right();
+    m_stack.push( next );
+    while ( next->get_left() != m_tree->nil() ) {
+      next = next->get_left();
+      m_stack.push( next );
+    }
+    return node;
+  }
+
+  // We're done with the subtree rooted at the
+  // current node, so go up to parent
+  m_stack.pop();
+
+  if ( m_stack.is_empty() )
+    // Done with the entire tree, next call to has_next() will return false
+    return node;
+
+  AATreeNode *parent = m_stack.top();
+  if ( node == parent->get_left() )
+    return node; // Case 2, immediate parent is the next node to visit
+  
+  // Case 3: traverse all upwards right links
+  DS_ASSERT( node == parent->get_right() );
+  DS_ASSERT( !m_stack.is_empty() );
+  DS_ASSERT( m_stack.top() == parent );
+
+  // In the following loop, "parent" is the node most recently popped
+  // off the stack
+  m_stack.pop();
+  while ( !m_stack.is_empty() ) {
+    AATreeNode *pp = m_stack.top();
+    if ( pp->get_left() == parent )
+      // pp was reached via a left link, so it is the next node,
+      // and it's on the top of the stack, so we're done
+      break;
+    
+    DS_ASSERT( pp->get_right() == parent );
+    // pp was reached via a right link, so now it's "parent",
+    // and we continue up
+    parent = pp;
+    m_stack.pop();
+  }
+
+  return node;
+}
+
 } // namespace dslib
