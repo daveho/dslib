@@ -7,6 +7,10 @@
 
 namespace dslib {
 
+// Tree printing is only supported if DSLIB_CHECK_INTEGRITY
+// is enabled
+#ifdef DSLIB_CHECK_INTEGRITY
+
 // pair of (index, num siblings):
 // index is which sibling we're currently printing
 typedef std::pair< int, int > StackItem;
@@ -78,5 +82,7 @@ void AATreePrint::print( AATreeNode *t ) const {
   ctx.pushctx( 1 );
   ctx.print_node( t );
 }
+
+#endif // DSLIB_CHECK_INTEGRITY
 
 } // end namespace dslib

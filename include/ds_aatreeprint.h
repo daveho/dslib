@@ -5,6 +5,7 @@
 
 namespace dslib {
 
+#ifdef DSLIB_CHECK_INTEGRITY
 class AATreeNode;
 
 class AATreePrint {
@@ -16,6 +17,7 @@ public:
 
   virtual std::string node_contents_to_str( AATreeNode *t ) const = 0;
 };
+#endif // DSLIB_CHECK_INTEGRITY
 
 } // end namespace dslib
 
