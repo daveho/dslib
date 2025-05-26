@@ -110,6 +110,9 @@ void test_insert( TestObjs *objs );
 void test_insert_many( TestObjs *objs );
 void test_remove_one( TestObjs *objs );
 void test_remove( TestObjs *objs );
+// TODO: test_remove_many
+void test_iterator_empty( TestObjs *objs );
+void test_iterator( TestObjs *objs );
 
 ////////////////////////////////////////////////////////////////////////
 // Test program
@@ -125,6 +128,9 @@ int main( int argc, char **argv ) {
   TEST( test_insert_many );
   TEST( test_remove_one );
   TEST( test_remove );
+  // TODO: test_remove_many
+  TEST( test_iterator_empty );
+  TEST( test_iterator );
 
   TEST_FINI();
 }
@@ -190,55 +196,41 @@ void test_remove( TestObjs *objs ) {
   for ( auto i = TEST_VALS.begin(); i != TEST_VALS.end(); ++i )
     itree.insert( new IntAATreeNode( *i ) );
 
-#if 1
   for ( auto i = TEST_VALS.begin(); i != TEST_VALS.end(); ++i ) {
     bool removed = itree.remove( IntAATreeNode( *i ) );
     ASSERT( removed );
     ASSERT( !itree.contains( IntAATreeNode( *i ) ) );
     ASSERT( itree.is_valid() );
   }
-#endif
+}
 
-#if 0
-  bool removed;
+void test_iterator_empty( TestObjs *objs ) {
+  auto &itree = objs->itree;
 
-  IntAATreePrint tp;
+  auto it = itree.iterator();
 
-  // Initial tree configuration
-  std::cout << "\n";
-  tp.print( itree.get_root() );
+  // The tree is empty
+  ASSERT( !it.has_next() );
+}
 
-  removed = itree.remove( IntAATreeNode( 16 ) );
-  ASSERT( removed );
-  ASSERT( !itree.contains( IntAATreeNode( 16 ) ) );
-  ASSERT( itree.is_valid() );
-  std::cout << "\n";
-  tp.print( itree.get_root() );
+void test_iterator( TestObjs *objs ) {
+  auto &itree = objs->itree;
+  
+  for ( auto i = TEST_VALS.begin(); i != TEST_VALS.end(); ++i )
+    itree.insert( new IntAATreeNode( *i ) );
 
-  removed = itree.remove( IntAATreeNode( 53 ) );
-  ASSERT( removed );
-  ASSERT( !itree.contains( IntAATreeNode( 53 ) ) );
-  ASSERT( itree.is_valid() );
+  std::vector< int > test_vals_sorted = TEST_VALS;
+  std::sort( test_vals_sorted.begin(), test_vals_sorted.end(), std::less<int>() );
 
-  removed = itree.remove( IntAATreeNode( 3 ) );
-  ASSERT( removed );
-  ASSERT( !itree.contains( IntAATreeNode( 3 ) ) );
-  ASSERT( itree.is_valid() );
+  // The iterator should give us the test values in sorted order
+  auto it = itree.iterator();
 
-  removed = itree.remove( IntAATreeNode( 98 ) );
-  ASSERT( removed );
-  ASSERT( !itree.contains( IntAATreeNode( 98 ) ) );
-  ASSERT( itree.is_valid() );
+  for ( auto i = test_vals_sorted.begin(); i != test_vals_sorted.end(); ++i ) {
+    ASSERT( it.has_next() );
+    IntAATreeNode *n = it.next();
+    ASSERT( *i == n->get_val() );
+  }
 
-  removed = itree.remove( IntAATreeNode( 79 ) );
-  ASSERT( removed );
-  ASSERT( !itree.contains( IntAATreeNode( 79 ) ) );
-  ASSERT( itree.is_valid() );
-
-  removed = itree.remove( IntAATreeNode( 80 ) );
-  ASSERT( removed );
-  ASSERT( !itree.contains( IntAATreeNode( 80 ) ) );
-  ASSERT( itree.is_valid() );
-
-#endif
+  // Should be at end of collection now
+  ASSERT( !it.has_next() );
 }

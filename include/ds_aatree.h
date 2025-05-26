@@ -5,6 +5,11 @@
 
 namespace dslib {
 
+//! Assume that the height of an AA-tree will never be greater than this:
+//! allows for using fixed-size arrays to keep track of nodes along
+//! a path from root to leaf.
+const constexpr int AA_TREE_MAX_HEIGHT = 32;
+
 class AATreeImpl;
 
 //! Intrusive AA tree node base class.
@@ -39,74 +44,9 @@ private:
   AATreeNode **get_ptr_to_right() { return &m_right; }
 };
 
-//! AA tree implementation.
-//! Don't use this directly: instead, use AATree, parametized with
-//! the actual tree node type.
-class AATreeImpl {
-public:
-  //! Type of node comparison function: returns true IFF left node
-  //! compares as less than right node
-  typedef bool LessThanFn( const AATreeNode *left, const AATreeNode *right );
-
-  //! Type of node contents copy function.
-  //! This is used to handle the situation where a non-leaf node
-  //! is deleted: we find an easy-to-remove node to be a "victim",
-  //! copy the contents of the victim into the "deleted" node, and
-  //! then remove the victim.
-  typedef void CopyNodeFn( AATreeNode *from, AATreeNode *to );
-
-  //! Node free function type
-  typedef void FreeNodeFn( AATreeNode *node );
-
-  //! Assume that the height of the tree will never be greater than this:
-  //! allows for using fixed-size arrays to keep track of nodes along
-  //! a path from root to leaf.
-  static constexpr const int MAX_HEIGHT = 32;
-
-private:
-  AATreeNode *m_root;
-  AATreeNode m_nil;
-  LessThanFn *m_less_than_fn;
-  CopyNodeFn *m_copy_node_fn;
-  FreeNodeFn *m_free_node_fn;
-
-  NO_VALUE_SEMANTICS( AATreeImpl );
-
-public:
-  AATreeImpl( LessThanFn *less_than_fn, CopyNodeFn *copy_node_fn, FreeNodeFn *free_node_fn );
-  ~AATreeImpl();
-
-  bool insert( AATreeNode *node );
-  AATreeNode *find( const AATreeNode &node ) const;
-  bool contains( const AATreeNode &node ) const;
-  bool remove( const AATreeNode &node );
-
-  const AATreeNode *nil() const { return &m_nil; }
-
-#ifdef DSLIB_CHECK_INTEGRITY
-  // Does AA-tree rooted at given node satisfy the AA-tree properties?
-  bool is_valid( AATreeNode *node, int expected_level ) const;
-
-  // Does the overall AA-tree satisfy the AA-tree properties?
-  bool is_valid() const {
-    if ( m_root == nullptr )
-      return true;
-    return is_valid( m_root, m_root->get_level() );
-  }
-
-  // Get pointer to root node
-  AATreeNode *get_root() const { return m_root; }
-#endif
-
-private:
-  AATreeNode *skew( AATreeNode *t );
-  AATreeNode *split( AATreeNode *t );
-  void adjust_level( AATreeNode *t );
-};
-
 class AATreePtrStackImpl {
 private:
-  void *m_stack[ AATreeImpl::MAX_HEIGHT ];
+  void *m_stack[ AA_TREE_MAX_HEIGHT ];
   int m_num_items;
 
   // note that this class DOES have value semantics
@@ -153,10 +93,13 @@ public:
   PtrType pop() { return static_cast< PtrType >( m_impl.pop() ); }
 };
 
+// Iterator implementation.
+// Don't use this directly: use AATreeIter instread,
+// parametized with the actual node type.
 class AATreeIterImpl {
 private:
   AATreePtrStack< AATreeNode* > m_stack;
-  AATreeImpl *m_tree;
+  const AATreeImpl *m_tree;
   
   // Note that this class DOES have value semantics
 
@@ -168,6 +111,101 @@ public:
   AATreeNode *next();
 
   friend class AATreeImpl;
+};
+
+//! AA tree implementation.
+//! Don't use this directly: instead, use AATree, parametized with
+//! the actual tree node type.
+class AATreeImpl {
+public:
+  //! Type of node comparison function: returns true IFF left node
+  //! compares as less than right node
+  typedef bool LessThanFn( const AATreeNode *left, const AATreeNode *right );
+
+  //! Type of node contents copy function.
+  //! This is used to handle the situation where a non-leaf node
+  //! is deleted: we find an easy-to-remove node to be a "victim",
+  //! copy the contents of the victim into the "deleted" node, and
+  //! then remove the victim.
+  typedef void CopyNodeFn( AATreeNode *from, AATreeNode *to );
+
+  //! Node free function type
+  typedef void FreeNodeFn( AATreeNode *node );
+
+private:
+  AATreeNode *m_root;
+  AATreeNode m_nil;
+  LessThanFn *m_less_than_fn;
+  CopyNodeFn *m_copy_node_fn;
+  FreeNodeFn *m_free_node_fn;
+
+  NO_VALUE_SEMANTICS( AATreeImpl );
+
+public:
+  AATreeImpl( LessThanFn *less_than_fn, CopyNodeFn *copy_node_fn, FreeNodeFn *free_node_fn );
+  ~AATreeImpl();
+
+  bool insert( AATreeNode *node );
+  AATreeNode *find( const AATreeNode &node ) const;
+  bool contains( const AATreeNode &node ) const;
+  bool remove( const AATreeNode &node );
+
+  const AATreeNode *nil() const { return &m_nil; }
+
+  AATreeIterImpl iterator() const;
+
+#ifdef DSLIB_CHECK_INTEGRITY
+  // Does AA-tree rooted at given node satisfy the AA-tree properties?
+  bool is_valid( AATreeNode *node, int expected_level ) const;
+
+  // Does the overall AA-tree satisfy the AA-tree properties?
+  bool is_valid() const {
+    if ( m_root == nullptr )
+      return true;
+    return is_valid( m_root, m_root->get_level() );
+  }
+
+  // Get pointer to root node
+  AATreeNode *get_root() const { return m_root; }
+#endif
+
+private:
+  AATreeNode *skew( AATreeNode *t );
+  AATreeNode *split( AATreeNode *t );
+  void adjust_level( AATreeNode *t );
+};
+
+//! Iterator over nodes in an AATree.
+template< typename ActualNodeType >
+class AATreeIter {
+private:
+  AATreeIterImpl m_impl;
+
+public:
+  //! Constructor. This shouldn't be used directly:
+  //! instead, call AATree::iterator().
+  //! @param impl the underlying AATreeIterImpl positioned at the
+  //!             first node
+  AATreeIter( const AATreeIterImpl &impl )
+    : m_impl( impl ) {
+
+  }
+
+  //! Destructor.
+  ~AATreeIter() { }
+
+  //! @return true if the iterator can return at least one more node,
+  //!         false if there are no more nodes to return
+  bool has_next() const {
+    return m_impl.has_next();
+  }
+
+  //! Get the next node, and advance to the node that follows.
+  //! Don't call this unless has_next() has returned true.
+  //! @return the next node in the sequenbce
+  ActualNodeType *next() {
+    return static_cast< ActualNodeType* >( m_impl.next() );
+  }
 };
 
 //! Balanced binary search tree class.
@@ -226,6 +264,12 @@ public:
   //!         contain a node equal to the given one
   bool remove( const ActualNodeType &node ) {
     return m_impl.remove( node );
+  }
+
+  //! Get an iterator positioned at the first (i.e., overall least) node.
+  //! @return an iterator positioned at the first (overall least) node
+  AATreeIter< ActualNodeType > iterator() const {
+    return AATreeIter< ActualNodeType >( m_impl.iterator() );
   }
 
 #ifdef DSLIB_CHECK_INTEGRITY

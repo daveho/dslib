@@ -166,6 +166,20 @@ bool AATreeImpl::remove( const AATreeNode &node ) {
   return true;
 }
 
+AATreeIterImpl AATreeImpl::iterator() const {
+  AATreeIterImpl it;
+  it.m_tree = this;
+
+  // First node to return is the leftmost node in the tree
+  AATreeNode *n = m_root;
+  while ( n != &m_nil ) {
+    it.m_stack.push( n );
+    n = n->get_left();
+  }
+
+  return it;
+}
+
 AATreeNode *AATreeImpl::skew( AATreeNode *t ) {
   if ( t == &m_nil )
     return &m_nil;
@@ -308,7 +322,7 @@ bool AATreePtrStackImpl::is_empty() const {
 }
 
 void AATreePtrStackImpl::push( void *p ) {
-  DS_ASSERT( m_num_items < AATreeImpl::MAX_HEIGHT );
+  DS_ASSERT( m_num_items < AA_TREE_MAX_HEIGHT );
   m_stack[ m_num_items ] = p;
   ++m_num_items;
 }
