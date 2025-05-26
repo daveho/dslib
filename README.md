@@ -12,7 +12,7 @@ goals:
   the node is the value)
 * minimal stack use (operations will, in general, not require more
   than a few dozen pointers worth of stack context, so they should
-  be ok for threads with small runtime stacks)
+  be ok to call from threads with small runtime stacks)
 * small code size (all data structure operations are separately
   compiled, not expanded from a template)
 * reasonable ergnomics (templates provide a thin layer over
