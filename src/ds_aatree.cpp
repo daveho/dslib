@@ -80,15 +80,12 @@ bool AATreeImpl::contains( const AATreeNode &node ) const {
 
 bool AATreeImpl::remove( const AATreeNode &node ) {
   // Keep track of pointers that may need to be updated
-  AATreeNode **path[ MAX_HEIGHT ];
-  int path_len = 0;
+  AATreePtrStack< AATreeNode** > path;
   AATreeNode **link = &m_root;
 
   // Find a node equal to the given one
   while ( *link != &m_nil ) {
-    DS_ASSERT( path_len < MAX_HEIGHT );
-    path[ path_len ] = link;
-    ++path_len;
+    path.push( link );
 
     if ( m_less_than_fn( &node, *link ) )
       // Node we're searching for is less than *link,
@@ -107,6 +104,7 @@ bool AATreeImpl::remove( const AATreeNode &node ) {
     return false;  // the tree doesn't contain a matching node
 
   // Refer to the node *link points to as "t". There are three cases:
+  //
   // 1. If t points to a true leaf, that node can be removed directly
   // 2. If t points to a node with a single child, that child
   //    becomes the root of the subtree that t was
@@ -129,22 +127,18 @@ bool AATreeImpl::remove( const AATreeNode &node ) {
     m_free_node_fn( t );
   } else {
     // Case 3
+    path.push( link );
 
-    DS_ASSERT( path_len < MAX_HEIGHT );
-    link = t->get_ptr_to_right();
-    path[ path_len ] = link;
-    ++path_len;
+    // Go to right subtree
+    link = (*link)->get_ptr_to_right();
 
     // Find the leftmost node in the subtree
     while ( (*link)->get_left() != &m_nil ) {
-      DS_ASSERT( path_len < MAX_HEIGHT );
-      path[ path_len ] = link;
-      ++path_len;
+      path.push( link );
       link = (*link)->get_ptr_to_left();
     }
 
-    DS_ASSERT( (*link)->get_left() == &m_nil );
-
+    // Leftmost node in t's right subtree is the "victim"
     AATreeNode *victim = *link;
 
     // Copy the contents of the victim to the deleted node
@@ -156,14 +150,14 @@ bool AATreeImpl::remove( const AATreeNode &node ) {
     DS_ASSERT( victim->get_left() != nullptr );
     DS_ASSERT( victim->get_right() != nullptr );
     *link = victim->get_right();
+
+    // Now we can delete the victim node
     m_free_node_fn( victim );
   }
 
   // Fix up all nodes
-  while ( path_len > 0 ) {
-    --path_len;
-    link = path[ path_len ];
-    DS_ASSERT( *link != nullptr );
+  while ( !path.is_empty() ) {
+    link = path.pop();
     adjust_level( *link );
     *link = skew( *link );
     *link = split( *link );
