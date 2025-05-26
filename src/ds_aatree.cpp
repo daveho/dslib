@@ -524,8 +524,12 @@ void AATreePostfixIterImpl::init( const AATreeImpl *tree ) {
     AATreeNode *left = n->get_left();
     n = ( left != m_tree->nil() ) ? left : n->get_right();
   }
-  DS_ASSERT( n->get_left() == m_tree->nil() );
-  DS_ASSERT( n->get_right() == m_tree->nil() );
+
+  // Either the tree is empty, or the first node visited should
+  // be a true leaf
+  DS_ASSERT( m_stack.is_empty() ||
+             ( m_stack.top()->get_left() == m_tree->nil() &&
+               m_stack.top()->get_right() == m_tree->nil() ) );
 }
 
 AATreeNode *AATreePostfixIterImpl::clean_ptr( AATreeNode *node ) {
