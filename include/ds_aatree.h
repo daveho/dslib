@@ -11,8 +11,14 @@ namespace dslib {
 const constexpr int AA_TREE_MAX_HEIGHT = 32;
 
 class AATreeImpl;
+class AATreeIterImpl;
+class AATreePostfixIterImpl;
+#ifdef DSLIB_CHECK_INTEGRITY
+class TreePrintContext;
+#endif
 
 //! Intrusive AA tree node base class.
+//! Your node type must derive from this class.
 class AATreeNode {
 private:
   AATreeNode *m_left, *m_right;
@@ -24,26 +30,33 @@ public:
   AATreeNode() : m_left( nullptr ), m_right( nullptr ), m_level( 1 ) { }
   ~AATreeNode() { }
 
+  // Allow certain implementation classes direct access to
+  // children pointers and level information
   friend class AATreeImpl;
+  friend class AATreeIterImpl;
+  friend class AATreePostfixIterImpl;
+#ifdef DSLIB_CHECK_INTEGRITY
+  friend class TreePrintContext;
+#endif
 
+private:
   AATreeNode *get_left() const { return m_left; }
   AATreeNode *get_right() const { return m_right; }
   int get_level() const { return m_level; }
 
-private:
   void set_left( AATreeNode *left ) { m_left = left; }
   void set_right( AATreeNode *right ) { m_right = right; }
   void set_level( int level ) { m_level = level; }
-
-  // Get pointer to this node's left pointer.
-  // Only AATreeImpl should  call this function.
   AATreeNode **get_ptr_to_left() { return &m_left; }
-
-  // Get pointer to this node's right pointer.
-  // Only AATreeImpl should  call this function.
   AATreeNode **get_ptr_to_right() { return &m_right; }
 };
 
+//! Fixed-size stack of pointers.
+//! This is used to keep track of the path from the
+//! root to a specific node in AATreeImpl::insert(),
+//! AATreeImpl::remove(), and the two iterator implementations
+//! (in-order and postorder.) You should not need to use this
+//! directly.
 class AATreePtrStackImpl {
 private:
   void *m_stack[ AA_TREE_MAX_HEIGHT ];
@@ -63,7 +76,7 @@ public:
 
 //! Stack of pointers of specified pointer type.
 //! This is used for the AA tree operations and iterator
-//! implementation to keep track of the path from the root
+//! implementations to keep track of the path from the root
 //! to a specific node. Note that this class has
 //! value semantics.
 template< typename PtrType >
@@ -93,7 +106,7 @@ public:
   PtrType pop() { return static_cast< PtrType >( m_impl.pop() ); }
 };
 
-// Iterator implementation.
+// In-order iterator implementation.
 // Don't use this directly: use AATreeIter instread,
 // parametized with the actual node type.
 class AATreeIterImpl {
@@ -116,7 +129,9 @@ private:
   void init( const AATreeImpl *tree );
 };
 
-// Postfix traversal implementation
+//! Postfix iterator implementation.
+//! Don't use this directly: use AATreePostfixIter instead,
+//! parametized with the actual node type.
 class AATreePostfixIterImpl {
 private:
   AATreePtrStack< AATreeNode* > m_stack;
