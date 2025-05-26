@@ -252,7 +252,7 @@ public:
   //! instead, call AATree::postfix_iterator().
   //! @param impl the underlying AATreePostfixIterImpl positioned at the
   //!             first node in postfix order
-  AATreePostfixIter( const AATreeIterImpl &impl )
+  AATreePostfixIter( const AATreePostfixIterImpl &impl )
     : m_impl( impl ) {
 
   }

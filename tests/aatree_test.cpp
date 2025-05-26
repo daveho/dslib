@@ -2,6 +2,7 @@
 #include <string>
 #include <sstream>
 #include <vector>
+#include <set>
 #include <algorithm>
 #include <random>
 #include "tctest.h"
@@ -113,6 +114,7 @@ void test_remove( TestObjs *objs );
 // TODO: test_remove_many
 void test_iterator_empty( TestObjs *objs );
 void test_iterator( TestObjs *objs );
+void test_postfix_iterator( TestObjs *objs );
 
 ////////////////////////////////////////////////////////////////////////
 // Test program
@@ -131,6 +133,7 @@ int main( int argc, char **argv ) {
   // TODO: test_remove_many
   TEST( test_iterator_empty );
   TEST( test_iterator );
+  TEST( test_postfix_iterator );
 
   TEST_FINI();
 }
@@ -233,4 +236,24 @@ void test_iterator( TestObjs *objs ) {
 
   // Should be at end of collection now
   ASSERT( !it.has_next() );
+}
+
+void test_postfix_iterator( TestObjs *objs ) {
+  auto &itree = objs->itree;
+
+  for ( auto i = TEST_VALS.begin(); i != TEST_VALS.end(); ++i )
+    itree.insert( new IntAATreeNode( *i ) );
+
+  // Test to make sure all nodes are traversed using the postfix iterator
+  std::set< int > seen;
+  auto it = itree.postfix_iterator();
+  while ( it.has_next() ) {
+    IntAATreeNode *n = it.next();
+    seen.insert( n->get_val() );
+  }
+
+  // seen should contain the same set of values as TEST_VALS
+  ASSERT( seen.size() == TEST_VALS.size() );
+  for ( auto i = TEST_VALS.begin(); i != TEST_VALS.end(); ++i )
+    ASSERT( seen.find( *i ) != seen.end() );
 }
