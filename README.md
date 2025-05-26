@@ -40,7 +40,8 @@ library are probably the unit tests:
 
 ## License
 
-I will decide on this soon.
+The library is availble under the terms of the MIT license:
+see [LICENSE.txt](LICENSE.txt).
 
 ## WTF?
 
