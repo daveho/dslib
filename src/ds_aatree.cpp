@@ -19,7 +19,14 @@ AATreeImpl::AATreeImpl( LessThanFn *less_than_fn, CopyNodeFn *copy_node_fn, Free
 }
 
 AATreeImpl::~AATreeImpl() {
-  // TODO: free nodes
+  // It should be completely safe to delete the nodes in
+  // postfix order (this should eliminate any possibility
+  // of using a node after it has been deleted)
+  AATreePostfixIterImpl it = postfix_iterator();
+  while ( it.has_next() ) {
+    AATreeNode *node = it.next();
+    m_free_node_fn( node );
+  }
 }
 
 bool AATreeImpl::insert( AATreeNode *node ) {
