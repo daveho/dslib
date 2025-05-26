@@ -6,8 +6,13 @@ goals:
 
 * suitable for embedded systems and OS kernels
 * no recursion
+* no exceptions
+* no RTTI
 * memory efficiency (all node-based collections are intrusive, so
   the node is the value)
+* minimal stack use (operations will, in general, not require more
+  than a few dozen pointers worth of stack context, so they should
+  be ok for threads with small runtime stacks)
 * small code size (all data structure operations are separately
   compiled, not expanded from a template)
 * reasonable ergnomics (templates provide a thin layer over
@@ -17,8 +22,26 @@ goals:
 
 ## Status
 
-This is totally incomplete and experimental.
+This is somewhat incomplete and experimental.
 
 A doubly-linked list implementation seems to work.
 
-An AA-tree implementation has been begun but is not very far along.
+An AA-tree implementation is approaching the point of usefulness,
+and passes some not-entirely-trivial unit tests, but requires more
+validation.
+
+## How do I use it?
+
+There's no real documentation yet. The best examples of using the
+library are probably the unit tests:
+
+* [list\_test.cpp](tests/list_test.cpp)
+* [aatree\_test.cpp](tests/aatree_test.cpp)
+
+## License
+
+I will decide on this soon.
+
+## WTF?
+
+Email questions, complaints, etc. to <mailto:daveho@cs.jhu.edu>
