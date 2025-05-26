@@ -210,12 +210,11 @@ public:
   }
 
 #ifdef DSLIB_CHECK_INTEGRITY
+  //! Check whether the tree satisfies the AST-tree properties
+  //! @return true if the tree satisfies the AA-tree properties,
+  //!         false if not
   bool is_valid() const {
     return m_impl.is_valid();
-  }
-
-  ActualNodeType *get_root() const {
-    return static_cast< ActualNodeType* >( m_impl.get_root() );
   }
 #endif
 };
