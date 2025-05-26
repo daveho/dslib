@@ -175,6 +175,8 @@ public:
   AATreeImpl( LessThanFn *less_than_fn, CopyNodeFn *copy_node_fn, FreeNodeFn *free_node_fn );
   ~AATreeImpl();
 
+  bool is_empty() const { return m_root == &m_nil; }
+
   bool insert( AATreeNode *node );
   AATreeNode *find( const AATreeNode &node ) const;
   bool contains( const AATreeNode &node ) const;
@@ -297,6 +299,10 @@ public:
 
   //! Destructor.
   ~AATree() { }
+
+  //! Check whether the AATree is empty.
+  //! @return true if the tree is empty, false if it has at least one node
+  bool is_empty() const { return m_impl.is_empty(); }
 
   //! Insert given node into the AATree.
   //! @param node the node to insert

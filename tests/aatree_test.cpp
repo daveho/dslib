@@ -111,7 +111,7 @@ void test_insert( TestObjs *objs );
 void test_insert_many( TestObjs *objs );
 void test_remove_one( TestObjs *objs );
 void test_remove( TestObjs *objs );
-// TODO: test_remove_many
+void test_remove_many( TestObjs *objs );
 void test_iterator_empty( TestObjs *objs );
 void test_iterator( TestObjs *objs );
 void test_postfix_iterator( TestObjs *objs );
@@ -130,7 +130,7 @@ int main( int argc, char **argv ) {
   TEST( test_insert_many );
   TEST( test_remove_one );
   TEST( test_remove );
-  // TODO: test_remove_many
+  TEST( test_remove_many );
   TEST( test_iterator_empty );
   TEST( test_iterator );
   TEST( test_postfix_iterator );
@@ -205,6 +205,34 @@ void test_remove( TestObjs *objs ) {
     ASSERT( !itree.contains( IntAATreeNode( *i ) ) );
     ASSERT( itree.is_valid() );
   }
+}
+
+void test_remove_many( TestObjs *objs ) {
+  auto rng = std::default_random_engine();
+  std::vector<int> vals;
+  for ( int i = 0; i < 100000; ++i )
+    vals.push_back( i );
+  std::shuffle( vals.begin(), vals.end(), rng );
+
+  auto &itree = objs->itree;
+
+  // Insert the values in shufled order
+  for ( auto i = vals.begin(); i != vals.end(); ++i )
+    itree.insert( new IntAATreeNode( *i ) );
+  ASSERT( itree.is_valid() );
+
+  // Shuffle the values again
+  std::shuffle( vals.begin(), vals.end(), rng );
+
+  // Remove all of the values
+  for ( auto i = vals.begin(); i != vals.end(); ++i ) {
+    bool removed;
+    removed = itree.remove( IntAATreeNode( *i ) );
+    ASSERT( removed );
+  }
+
+  ASSERT( itree.is_valid() );
+  ASSERT( itree.is_empty() );
 }
 
 void test_iterator_empty( TestObjs *objs ) {
