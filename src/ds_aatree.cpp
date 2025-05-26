@@ -2,6 +2,10 @@
 
 namespace dslib {
 
+////////////////////////////////////////////////////////////////////////
+// AATreeImpl implementation
+////////////////////////////////////////////////////////////////////////
+
 AATreeImpl::AATreeImpl( LessThanFn *less_than_fn, CopyNodeFn *copy_node_fn, FreeNodeFn *free_node_fn )
   : m_root( nullptr )
   , m_less_than_fn( less_than_fn )
@@ -24,14 +28,11 @@ bool AATreeImpl::insert( AATreeNode *node ) {
   DS_ASSERT( node->get_level() == 1 );
 
   // Keep track of pointers that may need to be updated
-  AATreeNode **path[ MAX_HEIGHT ];
-  int path_len = 0;
+  AATreePtrStack< AATreeNode** > path;
   AATreeNode **link = &m_root;
 
   while ( *link != &m_nil ) {
-    DS_ASSERT( path_len < MAX_HEIGHT );
-    path[ path_len ] = link;
-    ++path_len;
+    path.push( link );
 
     if ( m_less_than_fn( node, *link ) )
       link = (*link)->get_ptr_to_left();
@@ -51,9 +52,8 @@ bool AATreeImpl::insert( AATreeNode *node ) {
   node->set_right( &m_nil );
 
   // Rebalance
-  while ( path_len > 0 ) {
-    --path_len;
-    link = path[ path_len ];
+  while ( !path.is_empty() ) {
+    link = path.pop();
     *link = skew( *link );
     *link = split( *link );
   }
@@ -295,5 +295,39 @@ bool AATreeImpl::is_valid( AATreeNode *node, int expected_level ) const {
   }
 }
 #endif
+
+////////////////////////////////////////////////////////////////////////
+// AATreePtrStackImpl implementation
+////////////////////////////////////////////////////////////////////////
+
+AATreePtrStackImpl::AATreePtrStackImpl()
+  : m_num_items( 0 ) {
+
+}
+
+AATreePtrStackImpl::~AATreePtrStackImpl() {
+
+}
+
+bool AATreePtrStackImpl::is_empty() const {
+  return m_num_items <= 0;
+}
+
+void AATreePtrStackImpl::push( void *p ) {
+  DS_ASSERT( m_num_items < AATreeImpl::MAX_HEIGHT );
+  m_stack[ m_num_items ] = p;
+  ++m_num_items;
+}
+
+void *AATreePtrStackImpl::top() const {
+  DS_ASSERT( !is_empty() );
+  return m_stack[ m_num_items - 1 ];
+}
+
+void *AATreePtrStackImpl::pop() {
+  DS_ASSERT( !is_empty() );
+  --m_num_items;
+  return m_stack[ m_num_items ];
+}
 
 } // namespace dslib

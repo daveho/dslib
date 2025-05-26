@@ -58,6 +58,11 @@ public:
   //! Node free function type
   typedef void FreeNodeFn( AATreeNode *node );
 
+  //! Assume that the height of the tree will never be greater than this:
+  //! allows for using fixed-size arrays to keep track of nodes along
+  //! a path from root to leaf.
+  static constexpr const int MAX_HEIGHT = 32;
+
 private:
   AATreeNode *m_root;
   AATreeNode m_nil;
@@ -66,11 +71,6 @@ private:
   FreeNodeFn *m_free_node_fn;
 
   NO_VALUE_SEMANTICS( AATreeImpl );
-
-  // Assume that the height of the tree will never be greater than this:
-  // allows for using fixed-size arrays to keep track of nodes along
-  // a path from root to leaf
-  static constexpr const int MAX_HEIGHT = 32;
 
 public:
   AATreeImpl( LessThanFn *less_than_fn, CopyNodeFn *copy_node_fn, FreeNodeFn *free_node_fn );
@@ -100,6 +100,55 @@ private:
   AATreeNode *skew( AATreeNode *t );
   AATreeNode *split( AATreeNode *t );
   void adjust_level( AATreeNode *t );
+};
+
+class AATreePtrStackImpl {
+private:
+  void *m_stack[ AATreeImpl::MAX_HEIGHT ];
+  int m_num_items;
+
+  // note that this class DOES have value semantics
+
+public:
+  AATreePtrStackImpl();
+  ~AATreePtrStackImpl();
+
+  bool is_empty() const;
+  void push( void *p );
+  void *top() const;
+  void *pop();
+};
+
+//! Stack of pointers of specified pointer type.
+//! This is used for the AA tree operations and iterator
+//! implementation to keep track of the path from the root
+//! to a specific node. Note that this class has
+//! value semantics.
+template< typename PtrType >
+class AATreePtrStack {
+private:
+  AATreePtrStackImpl m_impl;
+
+public:
+  //! Constructor.
+  AATreePtrStack() { }
+
+  //! Destructor.
+  ~AATreePtrStack() { }
+
+  //! @return true if the stack is empty, false if not
+  bool is_empty() const { return m_impl.is_empty(); }
+
+  //! Push a pointer onto the stack.
+  //! @param p the pointer to push on the stack
+  void push( PtrType p ) { m_impl.push( static_cast< void* >( p ) ); }
+
+  //! @return the top pointer on the stack, which must be non-empty
+  PtrType top() const { return static_cast< PtrType >( m_impl.top() ); }
+
+  //! Pop a pointer off the top of the stack, which must be non-empty.
+  //! @return the pointer popped from the top of the stack
+  PtrType pop() { return static_cast< PtrType >( m_impl.pop() ); }
 };
 
 //! Balanced binary search tree class.
