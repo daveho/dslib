@@ -88,6 +88,8 @@ public:
   void insert_before( ListNode *node_to_insert, ListNode *existing );
   void insert_after( ListNode *node_to_insert, ListNode *existing );
   void remove( ListNode *node_to_remove );
+  ListNode *remove_first();
+  ListNode *remove_last();
   unsigned get_size() const;
 
   ListNode *next( ListNode *node ) const;
@@ -105,8 +107,16 @@ private:
   NO_VALUE_SEMANTICS( List );
 
 public:
+  //! Constructor.
+  //! @param free_node_fn function to free a list node (called from
+  //                      the destructor if the list is non-empty to
+  //                      to free all remaining nodes)
   List( ListImpl::FreeNodeFn *free_node_fn )
     : m_impl( free_node_fn ) { }
+  
+  //! Destructor.
+  //! Uses the list's free node function to delete any remaining
+  //! nodes.
   ~List() { }
 
   //! Get the list node that follows the given one.
@@ -172,6 +182,24 @@ public:
   //! @param existing an existing list node
   void remove( ListNode *node_to_remove ) {
     m_impl.remove( node_to_remove );
+  }
+
+  //! Remove the first node in the list.
+  //! The list must be nonempty. The list gives up ownership
+  //! of the returned node, so it's the caller's responsibility
+  //! to free it.
+  //! @return the removed first list node
+  ActualNodeType *remove_first() {
+    return static_cast< ActualNodeType* >( m_impl.remove_first() );
+  }
+
+  //! Remove the last node in the list.
+  //! The list must be nonempty. The list gives up ownership
+  //! of the returned node, so it's the caller's responsibility
+  //! to free it.
+  //! @return the removed last list node
+  ActualNodeType *remove_last() {
+    return static_cast< ActualNodeType* >( m_impl.remove_last() );
   }
 
   //! @return the number of nodes in the list (note that this involves

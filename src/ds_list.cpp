@@ -92,6 +92,20 @@ void ListImpl::remove( ListNode *node_to_remove ) {
   node_to_remove->set_next( nullptr );
 }
 
+ListNode *ListImpl::remove_first() {
+  DS_ASSERT( !is_empty() );
+  ListNode *first = get_first();
+  remove( first );
+  return first;
+}
+
+ListNode *ListImpl::remove_last() {
+  DS_ASSERT( !is_empty() );
+  ListNode *last = get_last();
+  remove( last );
+  return last;
+}
+
 unsigned ListImpl::get_size() const {
   unsigned count = 0;
   for ( auto p = get_first(); p != nullptr; p = next( p ) )

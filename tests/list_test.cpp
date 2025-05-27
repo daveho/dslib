@@ -91,6 +91,8 @@ void test_prepend( TestObjs *objs );
 void test_insert_before( TestObjs *objs );
 void test_insert_after( TestObjs *objs );
 void test_remove( TestObjs *objs );
+void test_remove_first( TestObjs *objs );
+void test_remove_last( TestObjs *objs );
 
 ////////////////////////////////////////////////////////////////////////
 // Test program
@@ -108,6 +110,8 @@ int main( int argc, char **argv ) {
   TEST( test_insert_before );
   TEST( test_insert_after );
   TEST( test_remove );
+  TEST( test_remove_first );
+  TEST( test_remove_last );
 
   TEST_FINI();
 }
@@ -231,4 +235,42 @@ void test_remove( TestObjs *objs ) {
   ilist.remove( middle );
   ASSERT( ilist.get_size() == 2 );
   check_list_contents( { 0, 2 }, ilist );
+
+  delete first;
+  delete last;
+  delete middle;
+}
+
+void test_remove_first( TestObjs *objs ) {
+  const std::vector<int> vals = { 9, 0, 1, 2, 5 };
+
+  auto &ilist = objs->ilist;
+  for ( auto i = vals.begin(); i != vals.end(); ++i )
+    ilist.append( new IntListNode( *i ) );
+  
+  for ( auto i = vals.begin(); i != vals.end(); ++i ) {
+    ASSERT( !ilist.is_empty() );
+    IntListNode *n = ilist.remove_first();
+    ASSERT( n->get_val() == *i );
+    delete n;
+  }
+
+  ASSERT( ilist.is_empty() );
+}
+
+void test_remove_last( TestObjs *objs ) {
+  const std::vector<int> vals = { 9, 0, 1, 2, 5 };
+
+  auto &ilist = objs->ilist;
+  for ( auto i = vals.begin(); i != vals.end(); ++i )
+    ilist.append( new IntListNode( *i ) );
+  
+  for ( auto i = vals.rbegin(); i != vals.rend(); ++i ) {
+    ASSERT( !ilist.is_empty() );
+    IntListNode *n = ilist.remove_last();
+    ASSERT( n->get_val() == *i );
+    delete n;
+  }
+
+  ASSERT( ilist.is_empty() );
 }
