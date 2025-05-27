@@ -60,6 +60,7 @@ bool AATreeImpl::insert( AATreeNode *node ) {
   AATreePtrStack< AATreeNode** > path;
   AATreeNode **link = &m_root;
 
+  // Find a place where we can attach the node being inserted
   while ( *link != &m_nil ) {
     path.push( link );
 
@@ -298,19 +299,30 @@ void AATreeImpl::adjust_level( AATreeNode *t ) {
 
 #ifdef DSLIB_CHECK_INTEGRITY
 bool AATreeImpl::is_valid( AATreeNode *node, int expected_level ) const {
+  if ( node == &m_nil )
+    return true;
+
   AATreeNode *left = node->get_left(), *right = node->get_right();
 
   // True leaf nodes must be at level 1
   if ( left == &m_nil && right == &m_nil )
     return node->get_level() == 1;
 
-  // If there is a left child, it must be at the next lower level
-  if ( left != nullptr )
+  // If there is a left child, it must compare as less than this node
+  // and it must be at the next lower level
+  if ( left != &m_nil ) {
     if ( !is_valid( left, expected_level - 1 ) )
       return false;
+    if ( !m_less_than_fn( left, node ) )
+      return false;
+  }
 
-  if ( right == nullptr )
+  if ( right == &m_nil )
     return true; // no right subtree
+
+  // Right child must compare as greater than this node
+  if ( !m_less_than_fn( node, right ) )
+    return false;
 
   // Right child could be a level below the parent
   if ( right->get_level() == expected_level - 1 )
