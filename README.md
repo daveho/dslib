@@ -26,9 +26,8 @@ This is somewhat incomplete and experimental.
 
 A doubly-linked list implementation seems to work.
 
-An AA-tree implementation is approaching the point of usefulness,
-and passes some not-entirely-trivial unit tests, but requires more
-validation.
+An [AA-tree](https://user.it.uu.se/~arneande/ps/simp.pdf) implementation
+seems to be functional, but I can't guarantee that there are no bugs.
 
 ## How do I use it?
 
