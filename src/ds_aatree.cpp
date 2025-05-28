@@ -341,6 +341,15 @@ bool AATreeImpl::is_valid( AATreeNode *node, int expected_level ) const {
     return is_valid( right, expected_level );
   }
 }
+
+int AATreeImpl::get_height( AATreeNode *node ) const {
+  if ( node == &m_nil )
+    return 0;
+  int l_height = get_height( node->get_left() );
+  int r_height = get_height( node->get_right() );
+  return 1 + ( l_height > r_height ? l_height : r_height );
+}
+
 #endif
 
 ////////////////////////////////////////////////////////////////////////

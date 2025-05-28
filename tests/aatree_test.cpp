@@ -103,6 +103,9 @@ struct TestObjs {
 // some arbitrary test data
 const std::vector< int > TEST_VALS = { 16, 53, 3, 98, 79, 80, 17, 11, 42, 86 };
 
+// how many nodes to insert for the "many" tests
+constexpr const int MANY = 100000;
+
 ////////////////////////////////////////////////////////////////////////
 // Function prototypes
 ////////////////////////////////////////////////////////////////////////
@@ -174,7 +177,7 @@ void test_insert( TestObjs *objs ) {
 void test_insert_many( TestObjs *objs ) {
   auto rng = std::default_random_engine();
   std::vector<int> vals;
-  for ( int i = 0; i < 100000; ++i )
+  for ( int i = 0; i < MANY; ++i )
     vals.push_back( i );
   std::shuffle( vals.begin(), vals.end(), rng );
 
@@ -182,7 +185,11 @@ void test_insert_many( TestObjs *objs ) {
 
   for ( auto i = vals.begin(); i != vals.end(); ++i )
     itree.insert( new IntAATreeNode( *i ) );
-  ASSERT( itree.is_valid() );  
+  ASSERT( itree.is_valid() );
+/*
+  int height = itree.get_height();
+  std::cout << "height=" << height;
+*/
 
   for ( auto i = vals.begin(); i != vals.end(); ++i )
     ASSERT( itree.contains( IntAATreeNode( *i ) ) );
@@ -214,7 +221,7 @@ void test_remove( TestObjs *objs ) {
 void test_remove_many( TestObjs *objs ) {
   auto rng = std::default_random_engine();
   std::vector<int> vals;
-  for ( int i = 0; i < 100000; ++i )
+  for ( int i = 0; i < MANY; ++i )
     vals.push_back( i );
   std::shuffle( vals.begin(), vals.end(), rng );
 

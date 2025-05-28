@@ -26,10 +26,18 @@
 
 namespace dslib {
 
+// Some empirical testing of tree height:
+//
+//    100,000 nodes: tree height is 23
+//  1,000,000 nodes: tree height is 29
+// 10,000,000 nodes: tree height is 32
+//
+// If you need more capacity, modify AA_TREE_MAX_HEIGHT below.
+
 //! Assume that the height of an AA-tree will never be greater than this:
 //! allows for using fixed-size arrays to keep track of nodes along
 //! a path from root to leaf.
-const constexpr int AA_TREE_MAX_HEIGHT = 32;
+const constexpr int AA_TREE_MAX_HEIGHT = 36;
 
 class AATreeImpl;
 class AATreeIterImpl;
@@ -236,6 +244,10 @@ public:
 
   // Get pointer to root node
   AATreeNode *get_root() const { return m_root; }
+
+  // Get tree height (because of the possibility of right nodes at the
+  // same level as the parent, level is not the same as height)
+  int get_height( AATreeNode *node ) const;
 #endif
 
 private:
@@ -314,7 +326,8 @@ public:
 };
 
 //! Balanced binary search tree class.
-//! @tparam ActualNodeType the actual tree node type
+//! @tparam ActualNodeType the actual tree node type, which needs
+//!         to derive from AATreeNode
 template< typename ActualNodeType >
 class AATree {
 private:
@@ -393,6 +406,11 @@ public:
   //!         false if not
   bool is_valid() const {
     return m_impl.is_valid();
+  }
+
+  //! Get tree height.
+  int get_height() const {
+    return m_impl.get_height( m_impl.get_root() );
   }
 #endif
 };
